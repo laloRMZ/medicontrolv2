@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "597603505793",
+    "project_id": "medicontrol-69acb",
+    "storage_bucket": "medicontrol-69acb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:597603505793:android:12bd9053f0f32371ef1f80",
+        "android_client_info": {
+          "package_name": "com.example.medicontrol"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "597603505793-igvgtmrbk0el1veiglddi3lhrr1umfni.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDpgICwTii_mhkXqbb7Xsy2c5I-hB0OMs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "597603505793-igvgtmrbk0el1veiglddi3lhrr1umfni.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
