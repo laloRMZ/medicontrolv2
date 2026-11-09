@@ -5,7 +5,7 @@ const path = require('path');
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
-const databasePath = process.env.SQLITE_PATH || path.join(__dirname, 'medicontrol.sqlite');
+const databasePath = process.env.SQLITE_PATH || (process.env.VERCEL ? '/tmp/medicontrol.sqlite' : path.join(__dirname, 'medicontrol.sqlite'));
 const db = new Database(databasePath);
 
 db.pragma('journal_mode = WAL');
