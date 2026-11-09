@@ -1,6 +1,6 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:oktoast/oktoast.dart';
 
 /// Servicio centralizado para mostrar alertas y notificaciones
 class AlertService {
@@ -121,17 +121,26 @@ class AlertService {
 
   /// Toast simple en la base (Notificación temporal corta)
   static void showToast(String message,
-      {ToastGravity gravity = ToastGravity.BOTTOM,
+      {ToastPosition position = ToastPosition.bottom,
       Color? bgColor,
       Color? textColor}) {
-    Fluttertoast.showToast(
-      msg: message,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: gravity,
-      timeInSecForIosWeb: 2,
-      backgroundColor: bgColor,
-      textColor: textColor,
-      fontSize: 14.0,
+    showToastWidget(
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: bgColor ?? Colors.grey[800],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          message,
+          style: TextStyle(
+            color: textColor ?? Colors.white,
+            fontSize: 14,
+          ),
+        ),
+      ),
+      position: position,
+      duration: const Duration(seconds: 2),
     );
   }
 
