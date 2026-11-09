@@ -45,7 +45,6 @@ dependencies:
 
   # Alertas y notificaciones
   awesome_dialog: ^3.2.0
-  oktoast: ^3.3.2
 
 dev_dependencies:
   flutter_test:

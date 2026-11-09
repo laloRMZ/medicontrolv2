@@ -1,6 +1,5 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:oktoast/oktoast.dart';
 
 /// Servicio centralizado para mostrar alertas y notificaciones
 class AlertService {
@@ -119,34 +118,32 @@ class AlertService {
     ).show();
   }
 
-  /// Toast simple en la base (Notificación temporal corta)
-  static void showToast(String message,
-      {ToastPosition position = ToastPosition.bottom,
-      Color? bgColor,
-      Color? textColor}) {
-    showToastWidget(
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: bgColor ?? Colors.grey[800],
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
+  /// Toast simple usando SnackBar nativo
+  static void showToast(
+    BuildContext context,
+    String message, {
+    Color? bgColor,
+    Color? textColor,
+    Duration duration = const Duration(seconds: 2),
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
           message,
-          style: TextStyle(
-            color: textColor ?? Colors.white,
-            fontSize: 14,
-          ),
+          style: TextStyle(color: textColor ?? Colors.white),
         ),
+        backgroundColor: bgColor,
+        duration: duration,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
       ),
-      position: position,
-      duration: const Duration(seconds: 2),
     );
   }
 
   /// Toast de éxito (Verde)
-  static void showSuccessToast(String message) {
+  static void showSuccessToast(BuildContext context, String message) {
     showToast(
+      context,
       message,
       bgColor: const Color(0xFF4CAF50),
       textColor: Colors.white,
@@ -154,8 +151,9 @@ class AlertService {
   }
 
   /// Toast de error (Rojo)
-  static void showErrorToast(String message) {
+  static void showErrorToast(BuildContext context, String message) {
     showToast(
+      context,
       message,
       bgColor: const Color(0xFFF44336),
       textColor: Colors.white,
@@ -163,8 +161,9 @@ class AlertService {
   }
 
   /// Toast de advertencia (Naranja)
-  static void showWarningToast(String message) {
+  static void showWarningToast(BuildContext context, String message) {
     showToast(
+      context,
       message,
       bgColor: const Color(0xFFFF9800),
       textColor: Colors.white,
