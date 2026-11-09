@@ -62,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      final userName = authProvider.fullName ?? 'Usuario';
+      final userName = authProvider.currentUser?.fullName ?? 'Usuario';
       AlertService.showSuccess(
         context,
         title: '¡Bienvenido!',
