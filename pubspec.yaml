@@ -43,6 +43,10 @@ dependencies:
   firebase_auth: ^4.17.0
   cloud_firestore: ^4.14.0
 
+  # Alertas y notificaciones
+  awesome_dialog: ^3.2.0
+  fluttertoast: ^8.2.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

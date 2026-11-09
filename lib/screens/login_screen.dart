@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../services/alert_service.dart';
 import 'app_shell.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -33,8 +34,10 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Completa todos los campos')),
+      AlertService.showWarning(
+        context,
+        title: 'Campos incompletos',
+        message: 'Por favor completa el email y la contraseña',
       );
       return;
     }
@@ -46,8 +49,10 @@ class _LoginScreenState extends State<LoginScreen> {
       final fullName = fullNameController.text.trim();
       final phone = phoneController.text.trim();
       if (fullName.isEmpty || phone.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Completa todos los campos')),
+        AlertService.showWarning(
+          context,
+          title: 'Campos incompletos',
+          message: 'Por favor completa todos los campos',
         );
         return;
       }
@@ -57,12 +62,22 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const AppShell()),
+      final userName = authProvider.fullName ?? 'Usuario';
+      AlertService.showSuccess(
+        context,
+        title: '¡Bienvenido!',
+        message: 'Hola $userName, tu sesión se ha iniciado correctamente',
+        onDismiss: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const AppShell()),
+          );
+        },
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(authProvider.errorMessage ?? 'Error desconocido')),
+      AlertService.showError(
+        context,
+        title: 'Error de autenticación',
+        message: authProvider.errorMessage ?? 'No se pudo iniciar sesión. Verifica tus credenciales',
       );
     }
   }
