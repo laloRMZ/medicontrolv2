@@ -1,0 +1,9 @@
+build/
+.dart_tool/
+node_modules/
+coverage/
+.git/
+*.apk
+*.so
+.metadata
+.flutter_tool_state
