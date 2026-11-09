@@ -63,16 +63,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success) {
       final userName = authProvider.currentUser?.fullName ?? 'Usuario';
+
+      // Mostrar alert de bienvenida
       AlertService.showSuccess(
         context,
         title: '¡Bienvenido!',
         message: 'Hola $userName, tu sesión se ha iniciado correctamente',
-        onDismiss: () {
+      );
+
+      // Navegar después de un pequeño delay para que se vea el alert
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const AppShell()),
           );
-        },
-      );
+        }
+      });
     } else {
       AlertService.showError(
         context,
