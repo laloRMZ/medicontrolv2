@@ -1,9 +1,0 @@
-{
-  "name": "medicontrolv2-web",
-  "version": "1.0.0",
-  "description": "MediControl V2 - Healthcare Management System",
-  "private": true,
-  "scripts": {
-    "build": "echo 'Build complete'"
-  }
-}
