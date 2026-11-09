@@ -1,15 +1,11 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "backend/server.js",
-      "use": "@vercel/node"
-    }
-  ],
+  "public": true,
+  "outputDirectory": "build/web",
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "backend/server.js"
+      "dest": "/index.html"
     }
   ]
 }
