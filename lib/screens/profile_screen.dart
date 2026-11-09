@@ -199,9 +199,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showLogoutDialog(BuildContext context) {
-    AlertService.confirmDelete(
+    AlertService.showConfirm(
       context,
-      itemName: 'sesión',
+      title: '¿Cerrar sesión?',
+      message: 'Se cerrará tu sesión en MediControl',
+      confirmText: 'Sí, cerrar sesión',
+      cancelText: 'Cancelar',
       onConfirm: () {
         context.read<AuthProvider>().logout();
         Navigator.of(context).pushAndRemoveUntil(
