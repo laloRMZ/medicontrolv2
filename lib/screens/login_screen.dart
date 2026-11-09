@@ -71,8 +71,8 @@ class _LoginScreenState extends State<LoginScreen> {
         message: 'Hola $userName, tu sesión se ha iniciado correctamente',
       );
 
-      // Navegar después de un pequeño delay para que se vea el alert
-      Future.delayed(const Duration(milliseconds: 500), () {
+      // Navegar después de un delay para que se vea el alert completamente
+      Future.delayed(const Duration(milliseconds: 2000), () {
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const AppShell()),
