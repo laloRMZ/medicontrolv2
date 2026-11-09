@@ -1,7 +1,6 @@
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 
-/// Servicio centralizado para mostrar alertas y notificaciones
+/// Servicio centralizado para mostrar alertas y notificaciones (usando solo Flutter nativo)
 class AlertService {
   /// Alerta de éxito (Color verde)
   static void showSuccess(
@@ -11,19 +10,7 @@ class AlertService {
     VoidCallback? onDismiss,
     Duration duration = const Duration(seconds: 3),
   }) {
-    AwesomeDialog(
-      context: context,
-      dialogType: DialogType.success,
-      animType: AnimType.scale,
-      title: title,
-      desc: message,
-      btnOkOnPress: () {
-        onDismiss?.call();
-        Navigator.of(context).pop();
-      },
-      dismissOnTouchOutside: true,
-      autoHide: duration,
-    ).show();
+    _showDialog(context, title, message, Colors.green, onDismiss);
   }
 
   /// Alerta de error (Color rojo)
@@ -33,18 +20,7 @@ class AlertService {
     required String message,
     VoidCallback? onDismiss,
   }) {
-    AwesomeDialog(
-      context: context,
-      dialogType: DialogType.error,
-      animType: AnimType.scale,
-      title: title,
-      desc: message,
-      btnOkOnPress: () {
-        onDismiss?.call();
-        Navigator.of(context).pop();
-      },
-      dismissOnTouchOutside: true,
-    ).show();
+    _showDialog(context, title, message, Colors.red, onDismiss);
   }
 
   /// Alerta de advertencia (Color naranja)
@@ -54,18 +30,7 @@ class AlertService {
     required String message,
     VoidCallback? onDismiss,
   }) {
-    AwesomeDialog(
-      context: context,
-      dialogType: DialogType.warning,
-      animType: AnimType.scale,
-      title: title,
-      desc: message,
-      btnOkOnPress: () {
-        onDismiss?.call();
-        Navigator.of(context).pop();
-      },
-      dismissOnTouchOutside: true,
-    ).show();
+    _showDialog(context, title, message, Colors.orange, onDismiss);
   }
 
   /// Alerta de información (Color azul)
@@ -75,18 +40,7 @@ class AlertService {
     required String message,
     VoidCallback? onDismiss,
   }) {
-    AwesomeDialog(
-      context: context,
-      dialogType: DialogType.info,
-      animType: AnimType.scale,
-      title: title,
-      desc: message,
-      btnOkOnPress: () {
-        onDismiss?.call();
-        Navigator.of(context).pop();
-      },
-      dismissOnTouchOutside: true,
-    ).show();
+    _showDialog(context, title, message, Colors.blue, onDismiss);
   }
 
   /// Diálogo de confirmación (Sí/No)
@@ -99,23 +53,29 @@ class AlertService {
     String confirmText = 'Sí',
     String cancelText = 'No',
   }) {
-    AwesomeDialog(
+    showDialog(
       context: context,
-      dialogType: DialogType.question,
-      animType: AnimType.scale,
-      title: title,
-      desc: message,
-      btnCancelOnPress: () {
-        onCancel?.call();
-        Navigator.of(context).pop();
-      },
-      btnOkOnPress: () {
-        onConfirm.call();
-        Navigator.of(context).pop();
-      },
-      btnCancelText: cancelText,
-      btnOkText: confirmText,
-    ).show();
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              onCancel?.call();
+              Navigator.pop(context);
+            },
+            child: Text(cancelText),
+          ),
+          TextButton(
+            onPressed: () {
+              onConfirm.call();
+              Navigator.pop(context);
+            },
+            child: Text(confirmText),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Toast simple usando SnackBar nativo
@@ -175,20 +135,68 @@ class AlertService {
     BuildContext context, {
     required String title,
     required String message,
-    required DialogType dialogType,
+    Color color = Colors.blue,
     VoidCallback? onOk,
   }) {
-    AwesomeDialog(
+    showDialog(
       context: context,
-      dialogType: dialogType,
-      animType: AnimType.scale,
-      title: title,
-      desc: message,
-      btnOkOnPress: () {
-        onOk?.call();
-        Navigator.of(context).pop();
-      },
-      dismissOnTouchOutside: true,
-    ).show();
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              onOk?.call();
+              Navigator.pop(context);
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Método privado para mostrar diálogos
+  static void _showDialog(
+    BuildContext context,
+    String title,
+    String message,
+    Color color,
+    VoidCallback? onDismiss,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        icon: Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.2),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            color == Colors.green
+                ? Icons.check_circle
+                : color == Colors.red
+                    ? Icons.error
+                    : color == Colors.orange
+                        ? Icons.warning
+                        : Icons.info,
+            color: color,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              onDismiss?.call();
+              Navigator.pop(context);
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 }
