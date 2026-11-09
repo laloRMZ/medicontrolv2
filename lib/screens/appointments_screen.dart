@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/appointment.dart';
 import '../providers/auth_provider.dart';
 import '../services/user_data_service.dart';
+import '../services/alert_service.dart';
 
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({super.key});
@@ -78,8 +79,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         specialty.isEmpty ||
         location.isEmpty ||
         reason.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Completa todos los campos de la cita')),
+      AlertService.showWarning(
+        context,
+        title: 'Campos incompletos',
+        message: 'Completa todos los campos de la cita',
       );
       return;
     }
@@ -105,21 +108,24 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       if (!mounted) return;
       if (success) {
         await _loadAppointments();
+        if (!mounted) return;
         Navigator.of(context).pop();
         _clearForm();
+        AlertService.operationComplete(
+          context,
+          operation: 'Cita creada correctamente',
+        );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se pudo guardar la cita'),
-          ),
+        AlertService.operationFailed(
+          context,
+          operation: 'guardar la cita',
         );
       }
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo guardar la cita'),
-        ),
+      AlertService.operationFailed(
+        context,
+        operation: 'guardar la cita',
       );
     }
   }
@@ -131,6 +137,37 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     _reasonController.clear();
     _selectedDate = DateTime.now().add(const Duration(days: 3));
     _selectedTime = const TimeOfDay(hour: 10, minute: 30);
+  }
+
+  void _deleteAppointmentWithConfirm(String appointmentId, String doctorName) {
+    AlertService.confirmDelete(
+      context,
+      itemName: 'cita con $doctorName',
+      onConfirm: () async {
+        try {
+          final success = await UserDataService.deleteAppointment(appointmentId);
+          if (!mounted) return;
+          if (success) {
+            await _loadAppointments();
+            AlertService.operationComplete(
+              context,
+              operation: 'Cita eliminada correctamente',
+            );
+          } else {
+            AlertService.operationFailed(
+              context,
+              operation: 'eliminar la cita',
+            );
+          }
+        } catch (_) {
+          if (!mounted) return;
+          AlertService.operationFailed(
+            context,
+            operation: 'eliminar la cita',
+          );
+        }
+      },
+    );
   }
 
   String _formatDate(DateTime date) {
@@ -475,35 +512,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                                   ),
                                 ),
                                 IconButton(
-                                  onPressed: () async {
+                                  onPressed: () {
                                     final id = appointment.id;
                                     if (id == null) return;
-                                    try {
-                                      final success = await UserDataService.deleteAppointment(id);
-                                      if (!mounted) return;
-                                      if (success) {
-                                        await _loadAppointments();
-                                      } else {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'No se pudo eliminar la cita',
-                                                ),
-                                              ),
-                                            );
-                                      }
-                                    } catch (_) {
-                                      if (!mounted) return;
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'No se pudo eliminar la cita',
-                                              ),
-                                            ),
-                                          );
-                                    }
+                                    _deleteAppointmentWithConfirm(id, appointment.doctorName);
                                   },
                                   icon: const Icon(
                                     Icons.delete_outline,

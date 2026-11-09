@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/doctor.dart';
 import '../providers/auth_provider.dart';
 import '../services/user_data_service.dart';
+import '../services/alert_service.dart';
 
 class DoctorsScreen extends StatefulWidget {
   const DoctorsScreen({super.key});
@@ -75,6 +76,37 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     _clinicController.clear();
   }
 
+  void _deleteDoctorWithConfirm(String doctorId, String doctorName) {
+    AlertService.confirmDelete(
+      context,
+      itemName: 'médico $doctorName',
+      onConfirm: () async {
+        try {
+          final success = await UserDataService.deleteFavoriteDoctor(doctorId);
+          if (!mounted) return;
+          if (success) {
+            await _loadDoctors();
+            AlertService.operationComplete(
+              context,
+              operation: 'Médico eliminado correctamente',
+            );
+          } else {
+            AlertService.operationFailed(
+              context,
+              operation: 'eliminar el médico',
+            );
+          }
+        } catch (_) {
+          if (!mounted) return;
+          AlertService.operationFailed(
+            context,
+            operation: 'eliminar el médico',
+          );
+        }
+      },
+    );
+  }
+
   Future<void> _addDoctor() async {
     final name = _nameController.text.trim();
     final specialty = _specialtyController.text.trim();
@@ -83,10 +115,10 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
     final clinic = _clinicController.text.trim();
 
     if ([name, specialty, phone, email, clinic].any((value) => value.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Completa todos los datos del profesional'),
-        ),
+      AlertService.showWarning(
+        context,
+        title: 'Campos incompletos',
+        message: 'Completa todos los datos del profesional',
       );
       return;
     }
@@ -104,21 +136,24 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
       if (!mounted) return;
       if (success) {
         await _loadDoctors();
+        if (!mounted) return;
         Navigator.of(context).pop();
         _clearForm();
+        AlertService.operationComplete(
+          context,
+          operation: 'Médico agregado correctamente',
+        );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se pudo guardar el médico'),
-          ),
+        AlertService.operationFailed(
+          context,
+          operation: 'guardar el médico',
         );
       }
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo guardar el médico'),
-        ),
+      AlertService.operationFailed(
+        context,
+        operation: 'guardar el médico',
       );
     }
   }
@@ -345,35 +380,10 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                                           ),
                                         ),
                                         trailing: IconButton(
-                                          onPressed: () async {
+                                          onPressed: () {
                                             final id = doctor.id;
                                             if (id == null) return;
-                                            try {
-                                              final success = await UserDataService.deleteFavoriteDoctor(id);
-                                              if (!mounted) return;
-                                              if (success) {
-                                                await _loadDoctors();
-                                              } else {
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                      const SnackBar(
-                                                        content: Text(
-                                                          'No se pudo eliminar el médico',
-                                                        ),
-                                                      ),
-                                                    );
-                                              }
-                                            } catch (_) {
-                                              if (!mounted) return;
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                    const SnackBar(
-                                                      content: Text(
-                                                        'No se pudo eliminar el médico',
-                                                      ),
-                                                    ),
-                                                  );
-                                            }
+                                            _deleteDoctorWithConfirm(id, doctor.name);
                                           },
                                           icon: const Icon(
                                             Icons.delete_outline,

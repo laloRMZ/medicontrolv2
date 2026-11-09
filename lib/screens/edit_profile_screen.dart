@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../models/user_medical_data.dart';
 import '../services/firebase_auth_service.dart';
+import '../services/alert_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -53,56 +54,69 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _saveProfile() async {
     if (_fullNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('El nombre es requerido')),
+      AlertService.showWarning(
+        context,
+        title: 'Campo requerido',
+        message: 'El nombre es requerido',
       );
       return;
     }
 
-    setState(() => _isLoading = true);
+    AlertService.confirmSave(
+      context,
+      onConfirm: () async {
+        setState(() => _isLoading = true);
 
-    try {
-      final authProvider = context.read<AuthProvider>();
+        try {
+          final authProvider = context.read<AuthProvider>();
 
-      // Guardar datos personales
-      await FirebaseAuthService.updateProfile(
-        _fullNameController.text.trim(),
-        _phoneController.text.trim(),
-      );
+          // Guardar datos personales
+          await FirebaseAuthService.updateProfile(
+            _fullNameController.text.trim(),
+            _phoneController.text.trim(),
+          );
 
-      // Guardar datos médicos
-      final medicalData = UserMedicalData(
-        bloodType: _bloodTypeController.text.trim(),
-        allergies: _allergiesController.text.trim(),
-        emergencyContactName: _emergencyContactNameController.text.trim(),
-        emergencyContactPhone: _emergencyContactPhoneController.text.trim(),
-        notes: _notesController.text.trim(),
-      );
+          // Guardar datos médicos
+          final medicalData = UserMedicalData(
+            bloodType: _bloodTypeController.text.trim(),
+            allergies: _allergiesController.text.trim(),
+            emergencyContactName: _emergencyContactNameController.text.trim(),
+            emergencyContactPhone: _emergencyContactPhoneController.text.trim(),
+            notes: _notesController.text.trim(),
+          );
 
-      await FirebaseAuthService.updateMedicalData(medicalData);
+          await FirebaseAuthService.updateMedicalData(medicalData);
 
-      // Actualizar provider
-      await authProvider.updateProfile(
-        _fullNameController.text.trim(),
-        _phoneController.text.trim(),
-      );
+          // Actualizar provider
+          await authProvider.updateProfile(
+            _fullNameController.text.trim(),
+            _phoneController.text.trim(),
+          );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ Perfil actualizado correctamente')),
-        );
-        // Regresar y el dashboard se refrescará
-        Navigator.of(context).pop(true); // true = datos actualizados
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+          if (mounted) {
+            AlertService.operationComplete(
+              context,
+              operation: 'Perfil actualizado',
+              onDismiss: () {
+                Navigator.of(context).pop(true);
+              },
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            AlertService.operationFailed(
+              context,
+              operation: 'actualizar el perfil',
+              reason: e.toString(),
+            );
+          }
+        } finally {
+          if (mounted) {
+            setState(() => _isLoading = false);
+          }
+        }
+      },
+    );
   }
 
   @override

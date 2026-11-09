@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/alert_service.dart';
 
 class UsersManagementScreen extends StatefulWidget {
   const UsersManagementScreen({super.key});
@@ -55,14 +56,59 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
     }
   }
 
+  void _deleteUserWithConfirm(String userId, String userName) {
+    AlertService.confirmDelete(
+      context,
+      itemName: 'usuario $userName',
+      onConfirm: () {
+        // Simular eliminación
+        setState(() {
+          _users.removeWhere((user) => user['id'].toString() == userId);
+        });
+        AlertService.operationComplete(
+          context,
+          operation: 'Usuario eliminado correctamente',
+        );
+      },
+    );
+  }
+
+  void _changeUserRoleWithConfirm(
+    String userId,
+    String userName,
+    String currentRole,
+  ) {
+    final newRole = currentRole == 'DOCTOR' ? 'ADMIN' : 'DOCTOR';
+    AlertService.confirmStatusChange(
+      context,
+      currentStatus: currentRole,
+      newStatus: newRole,
+      onConfirm: () {
+        // Simular cambio de rol
+        final userIndex = _users.indexWhere((u) => u['id'].toString() == userId);
+        if (userIndex != -1) {
+          setState(() {
+            _users[userIndex]['role'] = newRole;
+          });
+        }
+        AlertService.operationComplete(
+          context,
+          operation: 'Rol de $userName actualizado a $newRole',
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Gestión de Usuarios')),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Crear nuevo usuario')),
+          AlertService.showInfo(
+            context,
+            title: 'Crear usuario',
+            message: 'Función de crear usuarios en desarrollo',
           );
         },
         child: const Icon(Icons.add),
@@ -84,18 +130,46 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
                         ),
                         title: Text(user['name']),
                         subtitle: Text(user['email']),
-                        trailing: Chip(
-                          label: Text(user['role']),
-                          backgroundColor: _getRoleColor(user['role']),
-                          labelStyle: const TextStyle(color: Colors.white),
-                        ),
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Ver detalles de ${user['name']}'),
+                        trailing: PopupMenuButton(
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.security, size: 18),
+                                  SizedBox(width: 8),
+                                  Text('Cambiar rol'),
+                                ],
+                              ),
+                              onTap: () {
+                                _changeUserRoleWithConfirm(
+                                  user['id'].toString(),
+                                  user['name'],
+                                  user['role'],
+                                );
+                              },
                             ),
-                          );
-                        },
+                            PopupMenuItem(
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.delete, size: 18, color: Colors.red),
+                                  SizedBox(width: 8),
+                                  Text('Eliminar usuario', style: TextStyle(color: Colors.red)),
+                                ],
+                              ),
+                              onTap: () {
+                                _deleteUserWithConfirm(
+                                  user['id'].toString(),
+                                  user['name'],
+                                );
+                              },
+                            ),
+                          ],
+                          child: Chip(
+                            label: Text(user['role']),
+                            backgroundColor: _getRoleColor(user['role']),
+                            labelStyle: const TextStyle(color: Colors.white),
+                          ),
+                        ),
                       ),
                     );
                   },

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/emergency_contact.dart';
 import '../providers/auth_provider.dart';
 import '../services/user_data_service.dart';
+import '../services/alert_service.dart';
 
 class EmergencyContactsScreen extends StatefulWidget {
   const EmergencyContactsScreen({super.key});
@@ -73,6 +74,37 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
     _notesController.clear();
   }
 
+  void _deleteContactWithConfirm(String contactId, String contactName) {
+    AlertService.confirmDelete(
+      context,
+      itemName: 'contacto $contactName',
+      onConfirm: () async {
+        try {
+          final success = await UserDataService.deleteEmergencyContact(contactId);
+          if (!mounted) return;
+          if (success) {
+            await _loadContacts();
+            AlertService.operationComplete(
+              context,
+              operation: 'Contacto eliminado correctamente',
+            );
+          } else {
+            AlertService.operationFailed(
+              context,
+              operation: 'eliminar el contacto',
+            );
+          }
+        } catch (_) {
+          if (!mounted) return;
+          AlertService.operationFailed(
+            context,
+            operation: 'eliminar el contacto',
+          );
+        }
+      },
+    );
+  }
+
   Future<void> _addContact() async {
     final name = _nameController.text.trim();
     final relation = _relationController.text.trim();
@@ -80,8 +112,10 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
     final notes = _notesController.text.trim();
 
     if ([name, relation, phone, notes].any((value) => value.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Completa todos los datos del contacto')),
+      AlertService.showWarning(
+        context,
+        title: 'Campos incompletos',
+        message: 'Completa todos los datos del contacto',
       );
       return;
     }
@@ -98,21 +132,24 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
       if (!mounted) return;
       if (success) {
         await _loadContacts();
+        if (!mounted) return;
         Navigator.of(context).pop();
         _clearForm();
+        AlertService.operationComplete(
+          context,
+          operation: 'Contacto agregado correctamente',
+        );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se pudo guardar el contacto'),
-          ),
+        AlertService.operationFailed(
+          context,
+          operation: 'guardar el contacto',
         );
       }
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo guardar el contacto'),
-        ),
+      AlertService.operationFailed(
+        context,
+        operation: 'guardar el contacto',
       );
     }
   }
@@ -347,37 +384,10 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                                           child: Text(contact.phone),
                                         ),
                                         IconButton(
-                                          onPressed: () async {
+                                          onPressed: () {
                                             final id = contact.id;
                                             if (id == null) return;
-                                            try {
-                                              final success = await UserDataService.deleteEmergencyContact(
-                                                id,
-                                              );
-                                              if (!mounted) return;
-                                              if (success) {
-                                                await _loadContacts();
-                                              } else {
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                      const SnackBar(
-                                                        content: Text(
-                                                          'No se pudo eliminar el contacto',
-                                                        ),
-                                                      ),
-                                                    );
-                                              }
-                                            } catch (_) {
-                                              if (!mounted) return;
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                    const SnackBar(
-                                                      content: Text(
-                                                        'No se pudo eliminar el contacto',
-                                                      ),
-                                                    ),
-                                                  );
-                                            }
+                                            _deleteContactWithConfirm(id, contact.name);
                                           },
                                           icon: const Icon(
                                             Icons.delete_outline,

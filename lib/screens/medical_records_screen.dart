@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/medical_record.dart';
 import '../providers/auth_provider.dart';
 import '../services/user_data_service.dart';
+import '../services/alert_service.dart';
 
 class MedicalRecordsScreen extends StatefulWidget {
   const MedicalRecordsScreen({super.key});
@@ -69,14 +70,47 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
     _detailController.clear();
   }
 
+  void _deleteRecordWithConfirm(String recordId, String recordTitle) {
+    AlertService.confirmDelete(
+      context,
+      itemName: 'registro médico ($recordTitle)',
+      onConfirm: () async {
+        try {
+          final success = await UserDataService.deleteMedicalRecord(recordId);
+          if (!mounted) return;
+          if (success) {
+            await _loadRecords();
+            AlertService.operationComplete(
+              context,
+              operation: 'Registro eliminado correctamente',
+            );
+          } else {
+            AlertService.operationFailed(
+              context,
+              operation: 'eliminar el registro',
+            );
+          }
+        } catch (_) {
+          if (!mounted) return;
+          AlertService.operationFailed(
+            context,
+            operation: 'eliminar el registro',
+          );
+        }
+      },
+    );
+  }
+
   Future<void> _addRecord() async {
     final title = _titleController.text.trim();
     final description = _descriptionController.text.trim();
     final detail = _detailController.text.trim();
 
     if (title.isEmpty || description.isEmpty || detail.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Completa todos los campos del registro')),
+      AlertService.showWarning(
+        context,
+        title: 'Campos incompletos',
+        message: 'Completa todos los campos del registro',
       );
       return;
     }
@@ -92,21 +126,24 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
       if (!mounted) return;
       if (success) {
         await _loadRecords();
+        if (!mounted) return;
         Navigator.of(context).pop();
         _clearForm();
+        AlertService.operationComplete(
+          context,
+          operation: 'Registro médico creado correctamente',
+        );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se pudo guardar el registro'),
-          ),
+        AlertService.operationFailed(
+          context,
+          operation: 'guardar el registro',
         );
       }
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo guardar el registro'),
-        ),
+      AlertService.operationFailed(
+        context,
+        operation: 'guardar el registro',
       );
     }
   }
@@ -291,39 +328,10 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
                                 Align(
                                   alignment: Alignment.centerRight,
                                   child: IconButton(
-                                    onPressed: () async {
+                                    onPressed: () {
                                       final id = record.id;
                                       if (id == null) return;
-                                      try {
-                                        final success = await UserDataService.deleteMedicalRecord(
-                                          id,
-                                        );
-                                        if (!mounted) return;
-                                        if (success) {
-                                          await _loadRecords();
-                                        } else {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'No se pudo eliminar el registro',
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      } catch (_) {
-                                        if (!mounted) return;
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'No se pudo eliminar el registro',
-                                            ),
-                                          ),
-                                        );
-                                      }
+                                      _deleteRecordWithConfirm(id, record.title);
                                     },
                                     icon: const Icon(
                                       Icons.delete_outline,
