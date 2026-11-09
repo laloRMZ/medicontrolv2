@@ -206,11 +206,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       confirmText: 'Sí, cerrar sesión',
       cancelText: 'Cancelar',
       onConfirm: () {
-        context.read<AuthProvider>().logout();
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-          (route) => false,
-        );
+        // Cerrar el dialog primero con un pequeño delay
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) {
+            context.read<AuthProvider>().logout();
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+              (route) => false,
+            );
+          }
+        });
       },
     );
   }
