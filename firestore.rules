@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn()
+          && get(/databases/$(database)/documents/users/$(request.auth.uid))
+              .data.role == 'ADMIN';
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if signedIn()
+          && request.auth.uid == userId
+          && request.resource.data.role == 'USER';
+      allow update: if signedIn()
+          && request.auth.uid == userId
+          && request.resource.data.role == resource.data.role;
+      allow delete: if signedIn() && request.auth.uid == userId;
+    }
+
+    match /appointments/{appointmentId} {
+      allow read, update, delete: if signedIn()
+          && request.auth.uid == resource.data.userId;
+      allow create: if signedIn()
+          && request.auth.uid == request.resource.data.userId
+          && request.auth.uid == request.resource.data.creadoPor;
+    }
+
+    match /medicalRecords/{recordId} {
+      allow read, update, delete: if signedIn()
+          && request.auth.uid == resource.data.userId;
+      allow create: if signedIn()
+          && request.auth.uid == request.resource.data.userId;
+    }
+
+    match /emergencyContacts/{contactId} {
+      allow read, update, delete: if signedIn()
+          && request.auth.uid == resource.data.userId;
+      allow create: if signedIn()
+          && request.auth.uid == request.resource.data.userId;
+    }
+
+    match /support_chats/{userId} {
+      allow read: if signedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if signedIn()
+          && request.auth.uid == userId
+          && request.resource.data.userId == userId;
+      allow update: if isAdmin()
+          || (signedIn()
+              && request.auth.uid == userId
+              && request.resource.data.userId == resource.data.userId);
+
+      match /messages/{messageId} {
+        allow read: if signedIn()
+            && (request.auth.uid == userId || isAdmin());
+        allow create: if (signedIn()
+                && request.auth.uid == userId
+                && request.resource.data.sender == 'user')
+            || (isAdmin() && request.resource.data.sender == 'support');
+      }
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/auth_provider.dart';
 import '../models/user.dart';
 import 'appointments_screen.dart';
@@ -9,6 +10,7 @@ import 'emergency_contacts_screen.dart';
 import 'profile_screen.dart';
 import 'login_screen.dart';
 import 'admin/admin_dashboard_screen.dart';
+import 'admin/support_inbox_screen.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -26,6 +28,7 @@ class _AppShellState extends State<AppShell> {
         const AdminDashboardScreen(),
         const DoctorsScreen(),
         const AppointmentsScreen(),
+        const SupportInboxScreen(),
         const ProfileScreen(),
       ];
     }
@@ -84,6 +87,11 @@ class _AppShellState extends State<AppShell> {
         label: 'Citas',
       ),
       const NavigationDestination(
+        icon: Icon(Icons.message),
+        selectedIcon: Icon(Icons.message),
+        label: 'Chats',
+      ),
+      const NavigationDestination(
         icon: Icon(Icons.person_outline),
         selectedIcon: Icon(Icons.person),
         label: 'Perfil',
@@ -105,6 +113,8 @@ class _AppShellState extends State<AppShell> {
 
         final screens = _getScreens(user.role);
         final navDestinations = _getNavDestinations(user.role);
+        final selectedIndex =
+            _currentIndex < screens.length ? _currentIndex : 0;
 
         return Scaffold(
           appBar: AppBar(
@@ -128,10 +138,11 @@ class _AppShellState extends State<AppShell> {
                     child: const Text('Cerrar sesión'),
                     onTap: () {
                       authProvider.logout();
-                      Navigator.of(context).pushReplacement(
+                      Navigator.of(context).pushAndRemoveUntil(
                         MaterialPageRoute(
                           builder: (context) => const LoginScreen(),
                         ),
+                        (route) => false,
                       );
                     },
                   ),
@@ -139,9 +150,9 @@ class _AppShellState extends State<AppShell> {
               ),
             ],
           ),
-          body: IndexedStack(index: _currentIndex, children: screens),
+          body: IndexedStack(index: selectedIndex, children: screens),
           bottomNavigationBar: NavigationBar(
-            selectedIndex: _currentIndex,
+            selectedIndex: selectedIndex,
             onDestinationSelected: (index) {
               setState(() {
                 _currentIndex = index;

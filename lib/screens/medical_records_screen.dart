@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/medical_record.dart';
@@ -80,6 +80,7 @@ class _MedicalRecordsScreenState extends State<MedicalRecordsScreen> {
           if (!mounted) return;
           if (success) {
             await _loadRecords();
+            if (!mounted) return;
             AlertService.operationComplete(
               context,
               operation: 'Registro eliminado correctamente',

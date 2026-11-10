@@ -8,9 +8,20 @@ class AlertService {
     required String title,
     required String message,
     VoidCallback? onDismiss,
-    Duration duration = const Duration(seconds: 3),
+    Duration duration = const Duration(seconds: 2),
+    bool autoDismiss = false,
+    bool? showOkButton,
   }) {
-    _showDialog(context, title, message, Colors.green, onDismiss);
+    _showDialog(
+      context,
+      title,
+      message,
+      Colors.green,
+      onDismiss,
+      duration: duration,
+      autoDismiss: autoDismiss,
+      showOkButton: showOkButton,
+    );
   }
 
   /// Alerta de error (Color rojo)
@@ -19,8 +30,20 @@ class AlertService {
     required String title,
     required String message,
     VoidCallback? onDismiss,
+    Duration duration = const Duration(seconds: 3),
+    bool autoDismiss = false,
+    bool? showOkButton,
   }) {
-    _showDialog(context, title, message, Colors.red, onDismiss);
+    _showDialog(
+      context,
+      title,
+      message,
+      Colors.red,
+      onDismiss,
+      duration: duration,
+      autoDismiss: autoDismiss,
+      showOkButton: showOkButton,
+    );
   }
 
   /// Alerta de advertencia (Color naranja)
@@ -29,8 +52,20 @@ class AlertService {
     required String title,
     required String message,
     VoidCallback? onDismiss,
+    Duration duration = const Duration(seconds: 3),
+    bool autoDismiss = false,
+    bool? showOkButton,
   }) {
-    _showDialog(context, title, message, Colors.orange, onDismiss);
+    _showDialog(
+      context,
+      title,
+      message,
+      Colors.orange,
+      onDismiss,
+      duration: duration,
+      autoDismiss: autoDismiss,
+      showOkButton: showOkButton,
+    );
   }
 
   /// Alerta de información (Color azul)
@@ -39,8 +74,20 @@ class AlertService {
     required String title,
     required String message,
     VoidCallback? onDismiss,
+    Duration duration = const Duration(seconds: 3),
+    bool autoDismiss = false,
+    bool? showOkButton,
   }) {
-    _showDialog(context, title, message, Colors.blue, onDismiss);
+    _showDialog(
+      context,
+      title,
+      message,
+      Colors.blue,
+      onDismiss,
+      duration: duration,
+      autoDismiss: autoDismiss,
+      showOkButton: showOkButton,
+    );
   }
 
   /// Diálogo de confirmación (Sí/No)
@@ -257,42 +304,83 @@ class AlertService {
     String title,
     String message,
     Color color,
-    VoidCallback? onDismiss,
-  ) {
+    VoidCallback? onDismiss, {
+    Duration duration = const Duration(seconds: 2),
+    bool autoDismiss = false,
+    bool? showOkButton,
+  }) {
+    bool isDismissed = false;
+
+    void handleDismiss(BuildContext dialogContext) {
+      if (isDismissed) return;
+      isDismissed = true;
+      if (Navigator.of(dialogContext, rootNavigator: true).canPop()) {
+        Navigator.of(dialogContext, rootNavigator: true).pop();
+      }
+      onDismiss?.call();
+    }
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        icon: Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
-            shape: BoxShape.circle,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        if (autoDismiss) {
+          Future.delayed(duration, () {
+            if (dialogContext.mounted) {
+              handleDismiss(dialogContext);
+            }
+          });
+        }
+
+        final shouldShowOk = showOkButton ?? !autoDismiss;
+
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          child: Icon(
-            color == Colors.green
-                ? Icons.check_circle
-                : color == Colors.red
-                    ? Icons.error
-                    : color == Colors.orange
-                        ? Icons.warning
-                        : Icons.info,
-            color: color,
+          content: Text(
+            message,
+            textAlign: TextAlign.center,
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              onDismiss?.call();
-              Navigator.pop(context);
-            },
-            child: const Text('OK'),
+          icon: Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              color == Colors.green
+                  ? Icons.check_circle
+                  : color == Colors.red
+                      ? Icons.error
+                      : color == Colors.orange
+                          ? Icons.warning
+                          : Icons.info,
+              color: color,
+              size: 36,
+            ),
           ),
-        ],
-      ),
-    );
+          actionsAlignment: MainAxisAlignment.center,
+          actions: shouldShowOk
+              ? [
+                  TextButton(
+                    onPressed: () => handleDismiss(dialogContext),
+                    child: const Text('OK', style: TextStyle(fontSize: 16)),
+                  ),
+                ]
+              : null,
+        );
+      },
+    ).then((_) {
+      if (!isDismissed) {
+        isDismissed = true;
+        onDismiss?.call();
+      }
+    });
   }
 }
 

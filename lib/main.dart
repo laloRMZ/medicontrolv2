@@ -33,20 +33,29 @@ class MediControl extends StatelessWidget {
   }
 }
 
-class _HomeRouter extends StatelessWidget {
+class _HomeRouter extends StatefulWidget {
   const _HomeRouter();
+
+  @override
+  State<_HomeRouter> createState() => _HomeRouterState();
+}
+
+class _HomeRouterState extends State<_HomeRouter> {
+  bool? _initialIsAuthenticated;
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
-        if (authProvider.isLoading) {
+        if (!authProvider.isInitialized) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        return authProvider.isAuthenticated
+        _initialIsAuthenticated ??= authProvider.isAuthenticated;
+
+        return _initialIsAuthenticated!
             ? const AppShell()
             : const LoginScreen();
       },

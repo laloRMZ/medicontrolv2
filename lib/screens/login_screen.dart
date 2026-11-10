@@ -64,21 +64,23 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success) {
       final userName = authProvider.currentUser?.fullName ?? 'Usuario';
 
-      // Mostrar alert de bienvenida
+      // Mostrar alert de bienvenida y navegar automáticamente al dashboard sin requerir presionar OK
       AlertService.showSuccess(
         context,
         title: '¡Bienvenido!',
         message: 'Hola $userName, tu sesión se ha iniciado correctamente',
+        autoDismiss: true,
+        showOkButton: false,
+        duration: const Duration(milliseconds: 1500),
+        onDismiss: () {
+          if (mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const AppShell()),
+              (route) => false,
+            );
+          }
+        },
       );
-
-      // Navegar después de un delay para que se vea el alert completamente
-      Future.delayed(const Duration(milliseconds: 2000), () {
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const AppShell()),
-          );
-        }
-      });
     } else {
       AlertService.showError(
         context,

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/doctor.dart';
@@ -86,6 +86,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
           if (!mounted) return;
           if (success) {
             await _loadDoctors();
+            if (!mounted) return;
             AlertService.operationComplete(
               context,
               operation: 'Médico eliminado correctamente',

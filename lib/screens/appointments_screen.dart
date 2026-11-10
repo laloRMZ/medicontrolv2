@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/appointment.dart';
@@ -149,6 +149,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
           if (!mounted) return;
           if (success) {
             await _loadAppointments();
+            if (!mounted) return;
             AlertService.operationComplete(
               context,
               operation: 'Cita eliminada correctamente',

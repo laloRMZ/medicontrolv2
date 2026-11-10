@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/emergency_contact.dart';
@@ -84,6 +84,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
           if (!mounted) return;
           if (success) {
             await _loadContacts();
+            if (!mounted) return;
             AlertService.operationComplete(
               context,
               operation: 'Contacto eliminado correctamente',

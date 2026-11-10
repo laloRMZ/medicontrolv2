@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../services/alert_service.dart';
 import 'edit_profile_screen.dart';
 import 'login_screen.dart';
+import 'support_chat_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -16,7 +17,8 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<AuthProvider>().currentUser;
+    final authProvider = context.watch<AuthProvider>();
+    final user = authProvider.currentUser;
 
     return Scaffold(
       appBar: AppBar(
@@ -170,6 +172,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onTap: () {},
                     ),
                   ),
+                  if (!authProvider.isAdmin) _buildSupportCard(context),
 
                   const SizedBox(height: 24),
 
@@ -198,6 +201,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildSupportCard(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Card(
+        child: ListTile(
+          leading: const Icon(Icons.headset_mic),
+          title: const Text('Soporte técnico'),
+          subtitle: const Text('Chat en vivo y ayuda'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const SupportChatScreen(),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   void _showLogoutDialog(BuildContext context) {
     AlertService.showConfirm(
       context,
@@ -206,11 +230,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       confirmText: 'Sí, cerrar sesión',
       cancelText: 'Cancelar',
       onConfirm: () {
+        final navigator = Navigator.of(context);
+        final authProvider = context.read<AuthProvider>();
         // Cerrar el dialog primero con un pequeño delay
         Future.delayed(const Duration(milliseconds: 100), () {
           if (mounted) {
-            context.read<AuthProvider>().logout();
-            Navigator.of(context).pushAndRemoveUntil(
+            authProvider.logout();
+            navigator.pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) => const LoginScreen()),
               (route) => false,
             );

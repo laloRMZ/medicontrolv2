@@ -176,7 +176,7 @@ class FirebaseAuthService {
 
       final userData = userDoc.data() as Map<String, dynamic>;
       return AppUser.fromJson({
-        'id': user.uid.hashCode,
+        'id': user.uid,
         'fullName': userData['fullName'] ?? user.displayName ?? '',
         'email': userData['email'] ?? user.email ?? '',
         'phone': userData['phone'] ?? '',

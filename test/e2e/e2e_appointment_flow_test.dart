@@ -219,6 +219,7 @@ void main() {
     'Fase 4: Prueba E2E - Flujo Crítico Completo (Login -> Navegación -> Alta de Cita -> Verificación -> Baja)',
     (WidgetTester tester) async {
       SharedPreferences.setMockInitialValues({});
+      HttpOverrides.global = _E2EHttpOverrides();
       await HttpOverrides.runZoned(() async {
         // 1. Iniciar la aplicación
         await tester.pumpWidget(const MediControl());
