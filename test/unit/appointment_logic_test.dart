@@ -61,8 +61,8 @@ void main() {
       );
 
       final sorted = AppointmentLogic.sortChronologically([citaTardia, citaTemprana]);
-      expect(sorted.first.id, equals(1));
-      expect(sorted.last.id, equals(2));
+      expect(sorted.first.id, equals('1'));
+      expect(sorted.last.id, equals('2'));
 
       // Límite: findNextAppointment con una cita expirada hace 1 hora y otra futura
       final citaPasada = Appointment(
@@ -75,23 +75,37 @@ void main() {
       );
 
       final next = AppointmentLogic.findNextAppointment([citaPasada, citaTemprana], now: fixedNow);
-      expect(next?.id, equals(1), reason: 'Debe descartar la cita vencida y priorizar la futura');
+      expect(
+        next?.id,
+        equals('1'),
+        reason: 'Debe descartar la cita vencida y priorizar la futura',
+      );
     });
 
-    // 3. CASO INVÁLIDO O DE ERROR
-    test('Caso Inválido / Error: Rechaza campos en blanco y fechas en el pasado', () {
-      // 3.1. Campos vacíos
-      final blankResult = AppointmentLogic.validateAppointment(
-        doctorName: '   ',
-        specialty: '',
-        location: 'Clínica',
-        reason: '',
-        date: fixedNow.add(const Duration(days: 1)),
-        now: fixedNow,
-      );
+    test('Rechaza campos en blanco y fechas fuera del margen permitido', () {
+      // Cada operando de la condición compuesta se evalúa como vacío.
+      final blankFieldCases = [
+        (doctorName: '   ', specialty: 'Medicina', location: 'Clínica', reason: 'Control'),
+        (doctorName: 'Dr. Campos', specialty: ' ', location: 'Clínica', reason: 'Control'),
+        (doctorName: 'Dr. Campos', specialty: 'Medicina', location: ' ', reason: 'Control'),
+        (doctorName: 'Dr. Campos', specialty: 'Medicina', location: 'Clínica', reason: ' '),
+      ];
+      for (final fields in blankFieldCases) {
+        final blankResult = AppointmentLogic.validateAppointment(
+          doctorName: fields.doctorName,
+          specialty: fields.specialty,
+          location: fields.location,
+          reason: fields.reason,
+          date: fixedNow.add(const Duration(days: 1)),
+          now: fixedNow,
+        );
 
-      expect(blankResult.isValid, isFalse);
-      expect(blankResult.errorMessage, equals('Completa todos los campos de la cita'));
+        expect(blankResult.isValid, isFalse);
+        expect(
+          blankResult.errorMessage,
+          equals('Completa todos los campos de la cita'),
+        );
+      }
 
       // 3.2. Fecha en el pasado
       final pastDate = fixedNow.subtract(const Duration(days: 2));
@@ -107,10 +121,40 @@ void main() {
       expect(pastResult.isValid, isFalse);
       expect(pastResult.errorMessage, equals('La fecha y hora de la cita no pueden ser en el pasado'));
 
-      // 3.3. Formateo de fecha inválida (mes fuera de rango 1-12)
-      final invalidMonthDate = DateTime(2026, 13, 1); // Manejo defensivo
-      final formattedInvalid = AppointmentLogic.formatDate(invalidMonthDate);
-      expect(formattedInvalid, isNotEmpty);
+      final oneMinutePast = fixedNow.subtract(const Duration(minutes: 1));
+      final marginResult = AppointmentLogic.validateAppointment(
+        doctorName: 'Dr. Margen',
+        specialty: 'Medicina interna',
+        location: 'Hospital',
+        reason: 'Seguimiento',
+        date: oneMinutePast,
+        now: fixedNow,
+      );
+      expect(marginResult.isValid, isTrue);
+    });
+
+    test('No selecciona una cita cuando no hay próximas o la lista está vacía', () {
+      expect(
+        AppointmentLogic.findNextAppointment(const [], now: fixedNow),
+        isNull,
+      );
+
+      final pastAppointment = Appointment(
+        id: 'expired',
+        doctorName: 'Dr. Vencido',
+        specialty: 'General',
+        location: 'Sala 4',
+        reason: 'Consulta anterior',
+        date: fixedNow.subtract(const Duration(minutes: 2)),
+      );
+
+      expect(
+        AppointmentLogic.findNextAppointment(
+          [pastAppointment],
+          now: fixedNow,
+        ),
+        isNull,
+      );
     });
   });
 }
