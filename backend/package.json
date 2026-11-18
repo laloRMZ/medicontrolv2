@@ -4,7 +4,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test test/appointments_integration.test.js"
+    "test": "node --test test/appointments_integration.test.js",
+    "test:coverage": "node --experimental-test-coverage --test test/appointments_integration.test.js",
+    "test:performance": "node test/whitebox_metrics.js"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3",

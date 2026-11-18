@@ -7,6 +7,11 @@ describe('Fase 3: Pruebas de Integración - API REST & SQLite Database', () => {
   let server;
   let baseUrl;
   let createdAppointmentId = null;
+  const createdResourceIds = {
+    doctor: null,
+    contact: null,
+    record: null,
+  };
 
   before(async () => {
     // Iniciar servidor en un puerto efímero (0) para evitar colisiones
@@ -23,6 +28,15 @@ describe('Fase 3: Pruebas de Integración - API REST & SQLite Database', () => {
     // Limpieza posterior y cierre del socket
     if (createdAppointmentId) {
       db.prepare('DELETE FROM appointments WHERE id = ?').run(createdAppointmentId);
+    }
+    if (createdResourceIds.doctor) {
+      db.prepare('DELETE FROM doctors WHERE id = ?').run(createdResourceIds.doctor);
+    }
+    if (createdResourceIds.contact) {
+      db.prepare('DELETE FROM emergency_contacts WHERE id = ?').run(createdResourceIds.contact);
+    }
+    if (createdResourceIds.record) {
+      db.prepare('DELETE FROM medical_records WHERE id = ?').run(createdResourceIds.record);
     }
     await new Promise((resolve) => server.close(resolve));
   });
@@ -89,13 +103,27 @@ describe('Fase 3: Pruebas de Integración - API REST & SQLite Database', () => {
     const countAfterBadPost = db.prepare('SELECT COUNT(*) AS count FROM appointments').get().count;
     assert.strictEqual(countAfterBadPost, initialCount, 'La base de datos no debe alterar su conteo de filas ante un error');
 
-    // 2.2 Intentar eliminar un ID inexistente
+    // 2.2 La validación semántica debe diferenciar fecha inválida de campos ausentes.
+    const invalidDateResponse = await fetch(`${baseUrl}/api/appointments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        doctorName: 'Dr. Fecha Inválida',
+        specialty: 'Medicina general',
+        date: 'no-es-una-fecha',
+        reason: 'Prueba',
+        location: 'Clínica',
+      }),
+    });
+    assert.strictEqual(invalidDateResponse.status, 422);
+
+    // 2.3 Intentar eliminar un ID inexistente
     const notFoundDelete = await fetch(`${baseUrl}/api/appointments/999999`, {
       method: 'DELETE'
     });
     assert.strictEqual(notFoundDelete.status, 404, 'Debe responder 404 Not Found para IDs inexistentes');
 
-    // 2.3 Borrado exitoso del registro creado
+    // 2.4 Borrado exitoso del registro creado
     if (createdAppointmentId) {
       const deleteResponse = await fetch(`${baseUrl}/api/appointments/${createdAppointmentId}`, {
         method: 'DELETE'
@@ -106,6 +134,76 @@ describe('Fase 3: Pruebas de Integración - API REST & SQLite Database', () => {
       const purgedRow = db.prepare('SELECT * FROM appointments WHERE id = ?').get(createdAppointmentId);
       assert.strictEqual(purgedRow, undefined, 'El registro debe ser eliminado físicamente de SQLite');
       createdAppointmentId = null; // ya fue limpiado
+    }
+  });
+
+  it('Prueba Integración 3: valida y elimina médicos, contactos y registros médicos', async () => {
+    const profileResponse = await fetch(`${baseUrl}/api/profile`);
+    assert.strictEqual(profileResponse.status, 200);
+    assert.ok((await profileResponse.json()).fullName);
+
+    const invalidDoctorResponse = await fetch(`${baseUrl}/api/doctors`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Dra. Sin Especialidad' }),
+    });
+    assert.strictEqual(invalidDoctorResponse.status, 400);
+
+    const doctorResponse = await fetch(`${baseUrl}/api/doctors`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Dra. Recurso Temporal',
+        specialty: 'Neurología',
+      }),
+    });
+    assert.strictEqual(doctorResponse.status, 201);
+    createdResourceIds.doctor = (await doctorResponse.json()).id;
+
+    const invalidContactResponse = await fetch(`${baseUrl}/api/emergency-contacts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Contacto sin teléfono' }),
+    });
+    assert.strictEqual(invalidContactResponse.status, 400);
+
+    const contactResponse = await fetch(`${baseUrl}/api/emergency-contacts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Contacto Temporal',
+        relation: 'Amistad',
+        phone: '+57 300 000 0000',
+      }),
+    });
+    assert.strictEqual(contactResponse.status, 201);
+    createdResourceIds.contact = (await contactResponse.json()).id;
+
+    const invalidRecordResponse = await fetch(`${baseUrl}/api/medical-records`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Registro sin descripción' }),
+    });
+    assert.strictEqual(invalidRecordResponse.status, 400);
+
+    const recordResponse = await fetch(`${baseUrl}/api/medical-records`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'Registro temporal',
+        description: 'Creado por una prueba White Box.',
+        details: ['Evidencia automatizada'],
+      }),
+    });
+    assert.strictEqual(recordResponse.status, 201);
+    createdResourceIds.record = (await recordResponse.json()).id;
+
+    for (const [resource, id] of Object.entries(createdResourceIds)) {
+      const deleteResponse = await fetch(`${baseUrl}/api/${resource === 'record' ? 'medical-records' : resource === 'contact' ? 'emergency-contacts' : 'doctors'}/${id}`, {
+        method: 'DELETE',
+      });
+      assert.strictEqual(deleteResponse.status, 200);
+      createdResourceIds[resource] = null;
     }
   });
 });

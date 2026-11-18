@@ -171,8 +171,18 @@ app.get('/api/appointments', (req, res) => {
 
 app.post('/api/appointments', (req, res) => {
   const appointment = req.body;
-  if (!appointment || !appointment.doctorName || !appointment.specialty) {
+  const requiredFields = ['doctorName', 'specialty', 'date', 'reason', 'location'];
+  if (
+    !appointment ||
+    requiredFields.some(
+      (field) =>
+        typeof appointment[field] !== 'string' || appointment[field].trim() === '',
+    )
+  ) {
     return res.status(400).json({ message: 'Faltan datos de la cita' });
+  }
+  if (Number.isNaN(Date.parse(appointment.date))) {
+    return res.status(422).json({ message: 'La fecha de la cita no es válida' });
   }
 
   const result = db.prepare(
@@ -180,9 +190,9 @@ app.post('/api/appointments', (req, res) => {
   ).run(
     appointment.doctorName,
     appointment.specialty,
-    appointment.date || new Date().toISOString(),
-    appointment.reason || '',
-    appointment.location || '',
+    appointment.date,
+    appointment.reason,
+    appointment.location,
   );
   return res.status(201).json({ id: Number(result.lastInsertRowid), ...appointment });
 });
@@ -248,5 +258,8 @@ if (require.main === module) {
   });
 }
 
+// Preserve the Express handler expected by Vercel while exposing internals to
+// the local white-box integration tests.
 module.exports = app;
-
+module.exports.app = app;
+module.exports.db = db;
