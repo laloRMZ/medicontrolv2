@@ -44,6 +44,12 @@ class FirebaseAuthService {
       }
 
       final userData = userDoc.data() as Map<String, dynamic>;
+      final isActive = userData['isActive'] as bool? ?? true;
+      if (!isActive) {
+        await _auth.signOut();
+        throw Exception('Tu cuenta ha sido suspendida. Contacta al administrador.');
+      }
+
       final user = AppUser.fromJson({
         'id': credential.user!.uid,
         'fullName': userData['fullName'] ?? credential.user!.displayName ?? '',
@@ -51,6 +57,9 @@ class FirebaseAuthService {
         'phone': userData['phone'] ?? '',
         'role': userData['role'] ?? 'USER',
         'profileImage': userData['profileImage'],
+        'isActive': isActive,
+        'specialty': userData['specialty'],
+        'medicalData': userData['medicalData'],
         'createdAt':
             (userData['createdAt'] as Timestamp?)?.toDate().toIso8601String() ??
             DateTime.now().toIso8601String(),
@@ -97,6 +106,7 @@ class FirebaseAuthService {
         'email': email,
         'phone': phone,
         'role': 'USER',
+        'isActive': true,
         'profileImage': null,
         'createdAt': Timestamp.now(),
         'updatedAt': Timestamp.now(),
@@ -182,6 +192,9 @@ class FirebaseAuthService {
         'phone': userData['phone'] ?? '',
         'role': userData['role'] ?? 'USER',
         'profileImage': userData['profileImage'],
+        'isActive': userData['isActive'] ?? true,
+        'specialty': userData['specialty'],
+        'medicalData': userData['medicalData'],
         'createdAt':
             (userData['createdAt'] as Timestamp?)?.toDate().toIso8601String() ??
             DateTime.now().toIso8601String(),
@@ -230,6 +243,21 @@ class FirebaseAuthService {
       });
     } catch (e) {
       throw Exception('Error actualizando perfil: $e');
+    }
+  }
+
+  // Actualizar foto de perfil (URL o data URI base64)
+  static Future<void> updateProfileImage(String? profileImage) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('Usuario no autenticado');
+
+      await _firestore.collection('users').doc(user.uid).set({
+        'profileImage': profileImage,
+        'updatedAt': Timestamp.now(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      throw Exception('Error actualizando foto de perfil: $e');
     }
   }
 
@@ -282,10 +310,10 @@ class FirebaseAuthService {
       final user = _auth.currentUser;
       if (user == null) throw Exception('Usuario no autenticado');
 
-      await _firestore.collection('users').doc(user.uid).update({
+      await _firestore.collection('users').doc(user.uid).set({
         'medicalData': medicalData.toJson(),
         'updatedAt': Timestamp.now(),
-      });
+      }, SetOptions(merge: true));
     } catch (e) {
       throw Exception('Error guardando datos médicos: $e');
     }

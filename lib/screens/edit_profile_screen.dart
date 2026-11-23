@@ -22,22 +22,60 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _notesController;
 
   bool _isLoading = false;
+  bool _isLoadingMedicalData = false;
 
   @override
   void initState() {
     super.initState();
     _initializeControllers();
+    _loadMedicalDataIfNeeded();
   }
 
   void _initializeControllers() {
     final user = context.read<AuthProvider>().currentUser;
+    final medicalData = user?.medicalData;
     _fullNameController = TextEditingController(text: user?.fullName ?? '');
     _phoneController = TextEditingController(text: user?.phone ?? '');
-    _bloodTypeController = TextEditingController();
-    _allergiesController = TextEditingController();
-    _emergencyContactNameController = TextEditingController();
-    _emergencyContactPhoneController = TextEditingController();
-    _notesController = TextEditingController();
+    _bloodTypeController =
+        TextEditingController(text: medicalData?.bloodType ?? '');
+    _allergiesController =
+        TextEditingController(text: medicalData?.allergies ?? '');
+    _emergencyContactNameController =
+        TextEditingController(text: medicalData?.emergencyContactName ?? '');
+    _emergencyContactPhoneController =
+        TextEditingController(text: medicalData?.emergencyContactPhone ?? '');
+    _notesController = TextEditingController(text: medicalData?.notes ?? '');
+  }
+
+  Future<void> _loadMedicalDataIfNeeded() async {
+    final currentMedical = context.read<AuthProvider>().currentUser?.medicalData;
+    if (currentMedical != null && !currentMedical.isEmpty) return;
+
+    setState(() => _isLoadingMedicalData = true);
+    try {
+      final fetched = await FirebaseAuthService.getMedicalData();
+      if (!mounted || fetched == null || fetched.isEmpty) return;
+
+      if (_bloodTypeController.text.isEmpty) {
+        _bloodTypeController.text = fetched.bloodType;
+      }
+      if (_allergiesController.text.isEmpty) {
+        _allergiesController.text = fetched.allergies;
+      }
+      if (_emergencyContactNameController.text.isEmpty) {
+        _emergencyContactNameController.text = fetched.emergencyContactName;
+      }
+      if (_emergencyContactPhoneController.text.isEmpty) {
+        _emergencyContactPhoneController.text = fetched.emergencyContactPhone;
+      }
+      if (_notesController.text.isEmpty) {
+        _notesController.text = fetched.notes;
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingMedicalData = false);
+      }
+    }
   }
 
   @override
@@ -70,13 +108,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         try {
           final authProvider = context.read<AuthProvider>();
 
-          // Guardar datos personales
-          await FirebaseAuthService.updateProfile(
-            _fullNameController.text.trim(),
-            _phoneController.text.trim(),
-          );
-
-          // Guardar datos médicos
           final medicalData = UserMedicalData(
             bloodType: _bloodTypeController.text.trim(),
             allergies: _allergiesController.text.trim(),
@@ -85,21 +116,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             notes: _notesController.text.trim(),
           );
 
-          await FirebaseAuthService.updateMedicalData(medicalData);
-
-          // Actualizar provider
-          await authProvider.updateProfile(
+          final ok = await authProvider.updateProfile(
             _fullNameController.text.trim(),
             _phoneController.text.trim(),
+            medicalData: medicalData,
           );
 
-          if (mounted) {
+          if (!mounted) return;
+          if (ok) {
             AlertService.operationComplete(
               context,
               operation: 'Perfil actualizado',
               onDismiss: () {
                 Navigator.of(context).pop(true);
               },
+            );
+          } else {
+            AlertService.operationFailed(
+              context,
+              operation: 'actualizar el perfil',
+              reason: authProvider.errorMessage ?? 'Error desconocido',
             );
           }
         } catch (e) {
@@ -238,7 +274,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: _isLoading ? null : _saveProfile,
+                onPressed: (_isLoading || _isLoadingMedicalData)
+                    ? null
+                    : _saveProfile,
                 child: _isLoading
                     ? const SizedBox(
                         height: 20,

@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import '../services/firebase_auth_service.dart';
+
+import '../models/appointment.dart';
+import '../models/user.dart';
 import '../models/user_medical_data.dart';
+import '../providers/auth_provider.dart';
+import '../services/alert_service.dart';
+import '../services/profile_pdf_service.dart';
+import '../services/user_data_service.dart';
+import '../widgets/medical_summary_card.dart';
+import '../widgets/next_appointment_widget.dart';
+import '../widgets/quick_actions_grid.dart';
+import 'appointments_screen.dart';
+import 'edit_profile_screen.dart';
+import 'emergency_contacts_screen.dart';
+import 'medical_records_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -13,14 +26,14 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen>
     with WidgetsBindingObserver {
-  UserMedicalData? _medicalData;
-  bool _isLoading = true;
+  Appointment? _nextAppointment;
+  bool _isLoadingAppointments = true;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _loadMedicalData();
+    _loadDashboardData();
   }
 
   @override
@@ -32,24 +45,52 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      _loadMedicalData();
+      _loadDashboardData();
     }
   }
 
-  Future<void> _loadMedicalData() async {
+  Future<void> _loadDashboardData() async {
     try {
-      final data = await FirebaseAuthService.getMedicalData();
+      final appointments = await UserDataService.getUserAppointments();
+      final now = DateTime.now();
+      final upcoming = appointments
+          .where((a) => !a.date.isBefore(now))
+          .toList()
+        ..sort((a, b) => a.date.compareTo(b.date));
+
       if (mounted) {
         setState(() {
-          _medicalData = data;
-          _isLoading = false;
+          _nextAppointment = upcoming.isNotEmpty
+              ? upcoming.first
+              : (appointments.isNotEmpty ? appointments.last : null);
+          _isLoadingAppointments = false;
         });
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         setState(() {
-          _isLoading = false;
+          _isLoadingAppointments = false;
         });
+      }
+    }
+  }
+
+  Future<void> _exportProfilePdf(AppUser user) async {
+    try {
+      final safeName = user.fullName.trim().isEmpty
+          ? 'usuario'
+          : user.fullName.trim().replaceAll(RegExp(r'\s+'), '_');
+      await Printing.layoutPdf(
+        name: 'perfil_medico_$safeName.pdf',
+        onLayout: (_) => ProfilePdfService.buildMedicalProfilePdf(user),
+      );
+    } catch (e) {
+      if (mounted) {
+        AlertService.operationFailed(
+          context,
+          operation: 'generar el PDF del perfil médico',
+          reason: e.toString(),
+        );
       }
     }
   }
@@ -57,183 +98,184 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().currentUser;
-
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    final hasMedicalData = _medicalData != null && !_medicalData!.isEmpty;
+    final medicalData = user?.medicalData ?? const UserMedicalData();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("MediControl"),
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // SALUDO
-            Text(
-              "Hola, ${user?.fullName ?? 'Usuario'} 👋",
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 5),
-            const Text(
-              "Tu información médica en un solo lugar",
-              style: TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-            const SizedBox(height: 25),
+      body: RefreshIndicator(
+        onRefresh: _loadDashboardData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // SALUDO
+              Text(
+                "Hola, ${user?.fullName ?? 'Usuario'} 👋",
+                style:
+                    const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 5),
+              const Text(
+                "Tu información médica en un solo lugar",
+                style: TextStyle(color: Colors.grey, fontSize: 14),
+              ),
+              const SizedBox(height: 20),
 
-            // SI NO TIENE DATOS MÉDICOS
-            if (!hasMedicalData)
+              // ACCESOS RÁPIDOS
+              const Text(
+                'Accesos Rápidos',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              QuickActionsGrid(
+                actions: [
+                  QuickActionItem(
+                    icon: Icons.edit_note,
+                    label: 'Editar Perfil',
+                    color: Colors.blue,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const EditProfileScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  QuickActionItem(
+                    icon: Icons.calendar_month,
+                    label: 'Mis Citas',
+                    color: Colors.teal,
+                    onTap: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const AppointmentsScreen(),
+                        ),
+                      );
+                      _loadDashboardData();
+                    },
+                  ),
+                  QuickActionItem(
+                    icon: Icons.contact_emergency,
+                    label: 'Emergencia',
+                    color: Colors.red,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const EmergencyContactsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  QuickActionItem(
+                    icon: Icons.picture_as_pdf,
+                    label: 'Perfil en PDF',
+                    color: Colors.indigo,
+                    onTap: () {
+                      if (user != null) {
+                        _exportProfilePdf(user);
+                      }
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // PRÓXIMA CITA
+              if (_isLoadingAppointments)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              else
+                NextAppointmentWidget(
+                  appointment: _nextAppointment,
+                  onTap: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const AppointmentsScreen(),
+                      ),
+                    );
+                    _loadDashboardData();
+                  },
+                ),
+              const SizedBox(height: 24),
+
+              // RESUMEN MÉDICO REUTILIZABLE
+              MedicalSummaryCard(
+                medicalData: medicalData,
+                onEditPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const EditProfileScreen(),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 24),
+
+              // ACCESO A HISTORIAL MÉDICO
+              Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  leading: const Icon(Icons.folder_shared, color: Colors.blue),
+                  title: const Text('Registros Médicos'),
+                  subtitle: const Text('Consulta y agrega tu historial'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const MedicalRecordsScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // DATOS PERSONALES
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.1),
-                  border: Border.all(color: Colors.orange),
+                  color: Colors.grey.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.info, color: Colors.orange),
-                        const SizedBox(width: 12),
-                        const Expanded(
-                          child: Text(
-                            'Completa tu perfil médico',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ],
+                    const Text(
+                      'Información Personal',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 12),
-                    const Text(
-                      'Agrega tu información médica para un mejor seguimiento de tu salud.',
-                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                    _buildPersonalInfo('👤 Nombre', user?.fullName ?? '---'),
+                    const SizedBox(height: 8),
+                    _buildPersonalInfo('📧 Email', user?.email ?? '---'),
+                    const SizedBox(height: 8),
+                    _buildPersonalInfo(
+                      '📱 Teléfono',
+                      user?.phone.isEmpty ?? true ? '---' : user!.phone,
                     ),
                   ],
                 ),
-              )
-            else
-              // DATOS MÉDICOS
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Tu Información Médica',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 15),
-                  // Tipo de Sangre
-                  if (_medicalData!.bloodType.isNotEmpty)
-                    _buildInfoCard(
-                      '🩸 Tipo de Sangre',
-                      _medicalData!.bloodType,
-                      Colors.red,
-                    ),
-                  if (_medicalData!.bloodType.isNotEmpty)
-                    const SizedBox(height: 12),
-                  // Alergias
-                  if (_medicalData!.allergies.isNotEmpty)
-                    _buildInfoCard(
-                      '⚠️ Alergias',
-                      _medicalData!.allergies,
-                      Colors.orange,
-                    ),
-                  if (_medicalData!.allergies.isNotEmpty)
-                    const SizedBox(height: 12),
-                  // Contacto de Emergencia
-                  if (_medicalData!.emergencyContactName.isNotEmpty)
-                    _buildInfoCard(
-                      '📞 Contacto de Emergencia',
-                      '${_medicalData!.emergencyContactName}\n${_medicalData!.emergencyContactPhone}',
-                      Colors.red,
-                    ),
-                  if (_medicalData!.emergencyContactName.isNotEmpty)
-                    const SizedBox(height: 12),
-                  // Notas
-                  if (_medicalData!.notes.isNotEmpty)
-                    _buildInfoCard(
-                      '📋 Notas Médicas',
-                      _medicalData!.notes,
-                      Colors.blue,
-                    ),
-                ],
               ),
-
-            const SizedBox(height: 30),
-
-            // DATOS PERSONALES
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Información Personal',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildPersonalInfo('👤 Nombre', user?.fullName ?? '---'),
-                  const SizedBox(height: 8),
-                  _buildPersonalInfo('📧 Email', user?.email ?? '---'),
-                  const SizedBox(height: 8),
-                  _buildPersonalInfo('📱 Teléfono', user?.phone.isEmpty ?? true ? '---' : user!.phone),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard(String title, String content, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: color,
-              fontSize: 14,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            content,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.black87,
-            ),
-          ),
-        ],
       ),
     );
   }

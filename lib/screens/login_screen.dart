@@ -90,129 +90,396 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _toggleMode(AuthProvider authProvider, bool loginMode) {
+    if (authProvider.isLoading || isLogin == loginMode) return;
+    setState(() => isLogin = loginMode);
+    authProvider.clearError();
+    emailController.clear();
+    passwordController.clear();
+  }
+
+  InputDecoration _buildInputDecoration({
+    required String label,
+    required IconData icon,
+    String? hint,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      prefixIcon: Icon(icon, color: const Color(0xFF1565C0)),
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: const Color(0xFFF8FAFC),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Color(0xFF1565C0), width: 1.8),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Consumer<AuthProvider>(
-            builder: (context, authProvider, _) {
-              return Column(
-                children: [
-                  const SizedBox(height: 40),
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(20),
+      backgroundColor: const Color(0xFFF1F5F9),
+      body: Consumer<AuthProvider>(
+        builder: (context, authProvider, _) {
+          return Stack(
+            children: [
+              // Fondo superior con gradiente médico
+              Container(
+                height: 290,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF0D47A1),
+                      Color(0xFF1976D2),
+                      Color(0xFF00ACC1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(36),
+                    bottomRight: Radius.circular(36),
+                  ),
+                ),
+              ),
+              SafeArea(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 24,
                     ),
-                    child: const Icon(
-                      Icons.medical_services,
-                      color: Colors.white,
-                      size: 45,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'MediControl',
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    isLogin ? 'Inicia sesión en tu cuenta' : 'Crea tu cuenta',
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 35),
-                  if (!isLogin)
-                    TextField(
-                      controller: fullNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre completo',
-                        prefixIcon: Icon(Icons.person_outline),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 440),
+                      child: Column(
+                        children: [
+                          // Logo y título
+                          Container(
+                            width: 78,
+                            height: 78,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(22),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.16),
+                                  blurRadius: 18,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.medical_services_rounded,
+                              color: Color(0xFF1565C0),
+                              size: 42,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'MediControl',
+                            style: TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            isLogin
+                                ? 'Bienvenido de nuevo, cuida tu salud'
+                                : 'Crea tu perfil médico en segundos',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white.withValues(alpha: 0.9),
+                            ),
+                          ),
+                          const SizedBox(height: 28),
+
+                          // Tarjeta principal del formulario
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(24),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: 24,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                // Selector Login / Registro
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF1F5F9),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: _AuthModeTab(
+                                          label: 'Iniciar sesión',
+                                          selected: isLogin,
+                                          onTap: () =>
+                                              _toggleMode(authProvider, true),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: _AuthModeTab(
+                                          label: 'Registrarse',
+                                          selected: !isLogin,
+                                          onTap: () =>
+                                              _toggleMode(authProvider, false),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+
+                                // Campos de registro con animación
+                                AnimatedSize(
+                                  duration: const Duration(milliseconds: 220),
+                                  curve: Curves.easeInOut,
+                                  child: isLogin
+                                      ? const SizedBox.shrink()
+                                      : Column(
+                                          children: [
+                                            TextField(
+                                              controller: fullNameController,
+                                              textInputAction:
+                                                  TextInputAction.next,
+                                              textCapitalization:
+                                                  TextCapitalization.words,
+                                              decoration: _buildInputDecoration(
+                                                label: 'Nombre completo',
+                                                hint: 'Ej. Ana López',
+                                                icon: Icons.person_outline,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 14),
+                                          ],
+                                        ),
+                                ),
+
+                                TextField(
+                                  controller: emailController,
+                                  keyboardType: TextInputType.emailAddress,
+                                  textInputAction: TextInputAction.next,
+                                  decoration: _buildInputDecoration(
+                                    label: 'Correo electrónico',
+                                    hint: 'correo@ejemplo.com',
+                                    icon: Icons.email_outlined,
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+
+                                TextField(
+                                  controller: passwordController,
+                                  obscureText: obscurePassword,
+                                  textInputAction: isLogin
+                                      ? TextInputAction.done
+                                      : TextInputAction.next,
+                                  onSubmitted: (_) {
+                                    if (isLogin && !authProvider.isLoading) {
+                                      _handleSubmit(authProvider);
+                                    }
+                                  },
+                                  decoration: _buildInputDecoration(
+                                    label: 'Contraseña',
+                                    icon: Icons.lock_outline,
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        obscurePassword
+                                            ? Icons.visibility_outlined
+                                            : Icons.visibility_off_outlined,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          obscurePassword = !obscurePassword;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+
+                                AnimatedSize(
+                                  duration: const Duration(milliseconds: 220),
+                                  curve: Curves.easeInOut,
+                                  child: isLogin
+                                      ? const SizedBox.shrink()
+                                      : Column(
+                                          children: [
+                                            const SizedBox(height: 14),
+                                            TextField(
+                                              controller: phoneController,
+                                              keyboardType: TextInputType.phone,
+                                              textInputAction:
+                                                  TextInputAction.done,
+                                              onSubmitted: (_) {
+                                                if (!authProvider.isLoading) {
+                                                  _handleSubmit(authProvider);
+                                                }
+                                              },
+                                              decoration: _buildInputDecoration(
+                                                label: 'Teléfono',
+                                                hint: 'Ej. 5512345678',
+                                                icon: Icons.phone_outlined,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                ),
+
+                                const SizedBox(height: 24),
+
+                                // Botón principal
+                                SizedBox(
+                                  height: 52,
+                                  child: ElevatedButton(
+                                    onPressed: authProvider.isLoading
+                                        ? null
+                                        : () => _handleSubmit(authProvider),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF1565C0),
+                                      foregroundColor: Colors.white,
+                                      elevation: 2,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                    ),
+                                    child: authProvider.isLoading
+                                        ? const Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              SizedBox(
+                                                width: 18,
+                                                height: 18,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  strokeWidth: 2.2,
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                          Color>(Colors.white),
+                                                ),
+                                              ),
+                                              SizedBox(width: 12),
+                                              Text(
+                                                'Procesando...',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        : Text(
+                                            isLogin
+                                                ? 'Iniciar sesión'
+                                                : 'Crear cuenta',
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.verified_user_outlined,
+                                size: 16,
+                                color: Colors.grey.shade600,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Tus datos médicos están protegidos',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                  if (!isLogin) const SizedBox(height: 16),
-                  TextField(
-                    controller: emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Correo electrónico',
-                      prefixIcon: Icon(Icons.email_outlined),
-                    ),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: passwordController,
-                    obscureText: obscurePassword,
-                    decoration: InputDecoration(
-                      labelText: 'Contraseña',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          obscurePassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            obscurePassword = !obscurePassword;
-                          });
-                        },
-                      ),
-                    ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _AuthModeTab extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _AuthModeTab({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
-                  if (!isLogin) const SizedBox(height: 16),
-                  if (!isLogin)
-                    TextField(
-                      controller: phoneController,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(
-                        labelText: 'Teléfono',
-                        prefixIcon: Icon(Icons.phone_outlined),
-                      ),
-                    ),
-                  const SizedBox(height: 28),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: authProvider.isLoading
-                          ? null
-                          : () => _handleSubmit(authProvider),
-                      child: Text(
-                        authProvider.isLoading
-                            ? 'Procesando...'
-                            : isLogin
-                                ? 'Iniciar sesión'
-                                : 'Crear cuenta',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: authProvider.isLoading
-                        ? null
-                        : () {
-                            setState(() => isLogin = !isLogin);
-                            authProvider.clearError();
-                            emailController.clear();
-                            passwordController.clear();
-                          },
-                    child: Text(
-                      isLogin
-                          ? '¿No tienes cuenta? Regístrate'
-                          : '¿Ya tienes cuenta? Inicia sesión',
-                    ),
-                  ),
-                ],
-              );
-            },
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+            color: selected ? const Color(0xFF1565C0) : Colors.grey.shade600,
           ),
         ),
       ),

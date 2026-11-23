@@ -1,3 +1,5 @@
+import 'user_medical_data.dart';
+
 enum UserRole { admin, doctor, user }
 
 class AppUser {
@@ -8,6 +10,9 @@ class AppUser {
   final UserRole role;
   final String? profileImage;
   final DateTime createdAt;
+  final bool isActive;
+  final String? specialty;
+  final UserMedicalData medicalData;
 
   const AppUser({
     required this.id,
@@ -17,9 +22,17 @@ class AppUser {
     required this.role,
     this.profileImage,
     required this.createdAt,
+    this.isActive = true,
+    this.specialty,
+    this.medicalData = const UserMedicalData(),
   });
 
   factory AppUser.fromJson(Map<String, dynamic> json) {
+    final rawMedical = json['medicalData'];
+    final medicalData = rawMedical is Map
+        ? UserMedicalData.fromJson(Map<String, dynamic>.from(rawMedical))
+        : const UserMedicalData();
+
     return AppUser(
       id: json['id']?.toString() ?? '',
       fullName: json['fullName'] ?? '',
@@ -28,6 +41,9 @@ class AppUser {
       role: _parseRole(json['role']),
       profileImage: json['profileImage'],
       createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
+      isActive: json['isActive'] ?? true,
+      specialty: json['specialty'],
+      medicalData: medicalData,
     );
   }
 
@@ -50,5 +66,34 @@ class AppUser {
     'role': role.name.toUpperCase(),
     'profileImage': profileImage,
     'createdAt': createdAt.toIso8601String(),
+    'isActive': isActive,
+    'specialty': specialty,
+    'medicalData': medicalData.toJson(),
   };
+
+  AppUser copyWith({
+    String? id,
+    String? fullName,
+    String? email,
+    String? phone,
+    UserRole? role,
+    String? profileImage,
+    DateTime? createdAt,
+    bool? isActive,
+    String? specialty,
+    UserMedicalData? medicalData,
+  }) {
+    return AppUser(
+      id: id ?? this.id,
+      fullName: fullName ?? this.fullName,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      role: role ?? this.role,
+      profileImage: profileImage ?? this.profileImage,
+      createdAt: createdAt ?? this.createdAt,
+      isActive: isActive ?? this.isActive,
+      specialty: specialty ?? this.specialty,
+      medicalData: medicalData ?? this.medicalData,
+    );
+  }
 }

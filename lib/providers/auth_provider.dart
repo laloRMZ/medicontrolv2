@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
+import '../models/user_medical_data.dart';
 import '../services/firebase_auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -91,14 +92,63 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> updateProfile(String fullName, String phone) async {
+  Future<bool> updateProfile(
+    String fullName,
+    String phone, {
+    UserMedicalData? medicalData,
+  }) async {
     try {
       await FirebaseAuthService.updateProfile(fullName, phone);
-      _currentUser = await FirebaseAuthService.getStoredUser();
+      if (medicalData != null) {
+        await FirebaseAuthService.updateMedicalData(medicalData);
+      }
+
+      final updatedUser = await FirebaseAuthService.getStoredUser();
+      if (updatedUser != null) {
+        _currentUser = updatedUser;
+      } else if (_currentUser != null) {
+        _currentUser = _currentUser!.copyWith(
+          fullName: fullName,
+          phone: phone,
+          medicalData: medicalData,
+        );
+      }
+
+      _errorMessage = null;
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateProfileImage(String? profileImage) async {
+    try {
+      await FirebaseAuthService.updateProfileImage(profileImage);
+      final updatedUser = await FirebaseAuthService.getStoredUser();
+      if (updatedUser != null) {
+        _currentUser = updatedUser;
+      } else if (_currentUser != null) {
+        _currentUser = AppUser(
+          id: _currentUser!.id,
+          fullName: _currentUser!.fullName,
+          email: _currentUser!.email,
+          phone: _currentUser!.phone,
+          role: _currentUser!.role,
+          profileImage: profileImage,
+          createdAt: _currentUser!.createdAt,
+          isActive: _currentUser!.isActive,
+          specialty: _currentUser!.specialty,
+          medicalData: _currentUser!.medicalData,
+        );
+      }
+      _errorMessage = null;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
       notifyListeners();
       return false;
     }
