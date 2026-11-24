@@ -20,6 +20,22 @@ service cloud.firestore {
           && request.auth.uid == userId
           && request.resource.data.role == resource.data.role;
       allow delete: if signedIn() && request.auth.uid == userId;
+
+      match /appointments/{appointmentId} {
+        allow read, write: if signedIn() && request.auth.uid == userId;
+      }
+
+      match /emergency_contacts/{contactId} {
+        allow read, write: if signedIn() && request.auth.uid == userId;
+      }
+
+      match /medical_records/{recordId} {
+        allow read, write: if signedIn() && request.auth.uid == userId;
+      }
+
+      match /favorite_doctors/{doctorId} {
+        allow read, write: if signedIn() && request.auth.uid == userId;
+      }
     }
 
     match /appointments/{appointmentId} {

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -11,6 +10,7 @@ import '../providers/auth_provider.dart';
 import '../services/alert_service.dart';
 import '../services/profile_pdf_service.dart';
 import '../widgets/info_card.dart';
+import '../widgets/user_avatar.dart';
 import 'edit_profile_screen.dart';
 import 'login_screen.dart';
 import 'support_chat_screen.dart';
@@ -26,25 +26,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final ImagePicker _imagePicker = ImagePicker();
   bool _isGeneratingPdf = false;
   bool _isUpdatingPhoto = false;
-
-  ImageProvider? _resolveProfileImage(String? rawImage) {
-    if (rawImage == null || rawImage.trim().isEmpty) return null;
-    if (rawImage.startsWith('data:image')) {
-      final commaIndex = rawImage.indexOf(',');
-      if (commaIndex != -1) {
-        try {
-          final Uint8List bytes = base64Decode(rawImage.substring(commaIndex + 1));
-          return MemoryImage(bytes);
-        } catch (_) {
-          return null;
-        }
-      }
-    }
-    if (rawImage.startsWith('http://') || rawImage.startsWith('https://')) {
-      return NetworkImage(rawImage);
-    }
-    return null;
-  }
 
   Future<void> _pickProfilePhotoFromGallery(AuthProvider authProvider) async {
     if (_isUpdatingPhoto) return;
@@ -176,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
     final user = authProvider.currentUser;
-    final profileImageProvider = _resolveProfileImage(user?.profileImage);
+    final profileImageProvider = resolveProfileImage(user?.profileImage);
 
     return Scaffold(
       appBar: AppBar(
@@ -233,27 +214,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Stack(
                       alignment: Alignment.bottomRight,
                       children: [
-                        CircleAvatar(
+                        UserAvatar(
+                          profileImage: user?.profileImage,
+                          fullName: user?.fullName ?? '',
                           radius: 50,
-                          backgroundColor: Colors.blue,
-                          backgroundImage: profileImageProvider,
-                          child: _isUpdatingPhoto
-                              ? const CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
-                                )
-                              : profileImageProvider == null
-                                  ? Text(
-                                      (user?.fullName.isNotEmpty ?? false)
-                                          ? user!.fullName[0].toUpperCase()
-                                          : '?',
-                                      style: const TextStyle(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : null,
+                          isLoading: _isUpdatingPhoto,
                         ),
                         Container(
                           padding: const EdgeInsets.all(6),

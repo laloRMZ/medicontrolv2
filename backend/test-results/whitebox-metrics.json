@@ -1,0 +1,139 @@
+{
+  "executedAt": "2026-11-11T02:10:10.112Z",
+  "environment": {
+    "transport": "HTTP loopback (127.0.0.1)",
+    "endpoint": "GET /api/appointments",
+    "database": "SQLite"
+  },
+  "requests": [
+    {
+      "request": 1,
+      "status": 200,
+      "elapsedMs": 43.231,
+      "responseBytes": 324
+    },
+    {
+      "request": 2,
+      "status": 200,
+      "elapsedMs": 3.316,
+      "responseBytes": 324
+    },
+    {
+      "request": 3,
+      "status": 200,
+      "elapsedMs": 18.345,
+      "responseBytes": 324
+    },
+    {
+      "request": 4,
+      "status": 200,
+      "elapsedMs": 14.902,
+      "responseBytes": 324
+    },
+    {
+      "request": 5,
+      "status": 200,
+      "elapsedMs": 12.545,
+      "responseBytes": 324
+    },
+    {
+      "request": 6,
+      "status": 200,
+      "elapsedMs": 2.992,
+      "responseBytes": 324
+    },
+    {
+      "request": 7,
+      "status": 200,
+      "elapsedMs": 15.462,
+      "responseBytes": 324
+    },
+    {
+      "request": 8,
+      "status": 200,
+      "elapsedMs": 14.739,
+      "responseBytes": 324
+    },
+    {
+      "request": 9,
+      "status": 200,
+      "elapsedMs": 15.224,
+      "responseBytes": 324
+    },
+    {
+      "request": 10,
+      "status": 200,
+      "elapsedMs": 15.586,
+      "responseBytes": 324
+    }
+  ],
+  "httpSummary": {
+    "averageMs": 15.634,
+    "minMs": 2.992,
+    "maxMs": 43.231,
+    "p95Ms": 43.231,
+    "responseBytes": 324,
+    "successRate": "10/10",
+    "downloadMbps": 0.06
+  },
+  "database": {
+    "queries": [
+      {
+        "query": 1,
+        "elapsedMs": 0.072,
+        "rows": 2
+      },
+      {
+        "query": 2,
+        "elapsedMs": 0.012,
+        "rows": 2
+      },
+      {
+        "query": 3,
+        "elapsedMs": 0.009,
+        "rows": 2
+      }
+    ],
+    "averageMs": 0.031,
+    "queryPlan": [
+      {
+        "id": 3,
+        "parent": 0,
+        "notused": 216,
+        "detail": "SCAN appointments"
+      },
+      {
+        "id": 14,
+        "parent": 0,
+        "notused": 0,
+        "detail": "USE TEMP B-TREE FOR ORDER BY"
+      }
+    ]
+  },
+  "writeLoad": [
+    {
+      "concurrentUsers": 1,
+      "requests": 20,
+      "successRate": "20/20",
+      "averageMs": 15.473,
+      "p95Ms": 28.121,
+      "uploadMbps": 0.039
+    },
+    {
+      "concurrentUsers": 5,
+      "requests": 20,
+      "successRate": "20/20",
+      "averageMs": 6.946,
+      "p95Ms": 9.95,
+      "uploadMbps": 0.134
+    },
+    {
+      "concurrentUsers": 10,
+      "requests": 20,
+      "successRate": "20/20",
+      "averageMs": 8.051,
+      "p95Ms": 9.67,
+      "uploadMbps": 0.257
+    }
+  ]
+}

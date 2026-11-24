@@ -1,0 +1,589 @@
+{
+  "executedAt": "2026-11-11T02:44:42.145Z",
+  "environment": "Express/SQLite local auxiliary harness; not Firebase production",
+  "totalRequests": 20,
+  "scenarios": [
+    {
+      "name": "GET /api/appointments",
+      "concurrentUsers": 1,
+      "requests": 20,
+      "rps": 70.739,
+      "averageMs": 14.118,
+      "p90Ms": 16.646,
+      "p95Ms": 16.652,
+      "maxMs": 45.93,
+      "errorCount": 0,
+      "errorPercent": 0,
+      "statusCodes": {
+        "200": 20
+      },
+      "measurements": [
+        {
+          "status": 200,
+          "elapsedMs": 45.93
+        },
+        {
+          "status": 200,
+          "elapsedMs": 4.762
+        },
+        {
+          "status": 200,
+          "elapsedMs": 2.399
+        },
+        {
+          "status": 200,
+          "elapsedMs": 11.125
+        },
+        {
+          "status": 200,
+          "elapsedMs": 15.979
+        },
+        {
+          "status": 200,
+          "elapsedMs": 16.646
+        },
+        {
+          "status": 200,
+          "elapsedMs": 15.252
+        },
+        {
+          "status": 200,
+          "elapsedMs": 15.05
+        },
+        {
+          "status": 200,
+          "elapsedMs": 15.583
+        },
+        {
+          "status": 200,
+          "elapsedMs": 1.938
+        },
+        {
+          "status": 200,
+          "elapsedMs": 13.318
+        },
+        {
+          "status": 200,
+          "elapsedMs": 15.3
+        },
+        {
+          "status": 200,
+          "elapsedMs": 14.804
+        },
+        {
+          "status": 200,
+          "elapsedMs": 15.826
+        },
+        {
+          "status": 200,
+          "elapsedMs": 1.23
+        },
+        {
+          "status": 200,
+          "elapsedMs": 13.808
+        },
+        {
+          "status": 200,
+          "elapsedMs": 15.549
+        },
+        {
+          "status": 200,
+          "elapsedMs": 16.02
+        },
+        {
+          "status": 200,
+          "elapsedMs": 15.18
+        },
+        {
+          "status": 200,
+          "elapsedMs": 16.652
+        }
+      ]
+    },
+    {
+      "name": "POST /api/appointments",
+      "concurrentUsers": 1,
+      "requests": 20,
+      "rps": 81.067,
+      "averageMs": 12.307,
+      "p90Ms": 16.361,
+      "p95Ms": 16.387,
+      "maxMs": 32.984,
+      "errorCount": 0,
+      "errorPercent": 0,
+      "statusCodes": {
+        "201": 20
+      },
+      "measurements": [
+        {
+          "status": 201,
+          "elapsedMs": 32.984
+        },
+        {
+          "status": 201,
+          "elapsedMs": 1.73
+        },
+        {
+          "status": 201,
+          "elapsedMs": 11.72
+        },
+        {
+          "status": 201,
+          "elapsedMs": 14.97
+        },
+        {
+          "status": 201,
+          "elapsedMs": 16.361
+        },
+        {
+          "status": 201,
+          "elapsedMs": 2.018
+        },
+        {
+          "status": 201,
+          "elapsedMs": 2.178
+        },
+        {
+          "status": 201,
+          "elapsedMs": 10.568
+        },
+        {
+          "status": 201,
+          "elapsedMs": 16.387
+        },
+        {
+          "status": 201,
+          "elapsedMs": 14.666
+        },
+        {
+          "status": 201,
+          "elapsedMs": 2.257
+        },
+        {
+          "status": 201,
+          "elapsedMs": 13.098
+        },
+        {
+          "status": 201,
+          "elapsedMs": 15.809
+        },
+        {
+          "status": 201,
+          "elapsedMs": 14.947
+        },
+        {
+          "status": 201,
+          "elapsedMs": 15.248
+        },
+        {
+          "status": 201,
+          "elapsedMs": 15.373
+        },
+        {
+          "status": 201,
+          "elapsedMs": 15.576
+        },
+        {
+          "status": 201,
+          "elapsedMs": 14.717
+        },
+        {
+          "status": 201,
+          "elapsedMs": 1.09
+        },
+        {
+          "status": 201,
+          "elapsedMs": 14.437
+        }
+      ]
+    },
+    {
+      "name": "GET /api/appointments",
+      "concurrentUsers": 5,
+      "requests": 20,
+      "rps": 557.44,
+      "averageMs": 8.4,
+      "p90Ms": 16.035,
+      "p95Ms": 16.147,
+      "maxMs": 16.261,
+      "errorCount": 0,
+      "errorPercent": 0,
+      "statusCodes": {
+        "200": 20
+      },
+      "measurements": [
+        {
+          "status": 200,
+          "elapsedMs": 6.152
+        },
+        {
+          "status": 200,
+          "elapsedMs": 6.251
+        },
+        {
+          "status": 200,
+          "elapsedMs": 6.208
+        },
+        {
+          "status": 200,
+          "elapsedMs": 6.236
+        },
+        {
+          "status": 200,
+          "elapsedMs": 6.32
+        },
+        {
+          "status": 200,
+          "elapsedMs": 5.998
+        },
+        {
+          "status": 200,
+          "elapsedMs": 6.036
+        },
+        {
+          "status": 200,
+          "elapsedMs": 6.174
+        },
+        {
+          "status": 200,
+          "elapsedMs": 6.119
+        },
+        {
+          "status": 200,
+          "elapsedMs": 6.118
+        },
+        {
+          "status": 200,
+          "elapsedMs": 15.887
+        },
+        {
+          "status": 200,
+          "elapsedMs": 15.919
+        },
+        {
+          "status": 200,
+          "elapsedMs": 16.035
+        },
+        {
+          "status": 200,
+          "elapsedMs": 16.147
+        },
+        {
+          "status": 200,
+          "elapsedMs": 16.261
+        },
+        {
+          "status": 200,
+          "elapsedMs": 5.054
+        },
+        {
+          "status": 200,
+          "elapsedMs": 5.101
+        },
+        {
+          "status": 200,
+          "elapsedMs": 5.213
+        },
+        {
+          "status": 200,
+          "elapsedMs": 5.319
+        },
+        {
+          "status": 200,
+          "elapsedMs": 5.448
+        }
+      ]
+    },
+    {
+      "name": "POST /api/appointments",
+      "concurrentUsers": 5,
+      "requests": 20,
+      "rps": 207.904,
+      "averageMs": 22.618,
+      "p90Ms": 27.731,
+      "p95Ms": 29.034,
+      "maxMs": 29.599,
+      "errorCount": 0,
+      "errorPercent": 0,
+      "statusCodes": {
+        "201": 20
+      },
+      "measurements": [
+        {
+          "status": 201,
+          "elapsedMs": 11.765
+        },
+        {
+          "status": 201,
+          "elapsedMs": 11.899
+        },
+        {
+          "status": 201,
+          "elapsedMs": 12.068
+        },
+        {
+          "status": 201,
+          "elapsedMs": 12.34
+        },
+        {
+          "status": 201,
+          "elapsedMs": 12.55
+        },
+        {
+          "status": 201,
+          "elapsedMs": 23.968
+        },
+        {
+          "status": 201,
+          "elapsedMs": 23.841
+        },
+        {
+          "status": 201,
+          "elapsedMs": 23.887
+        },
+        {
+          "status": 201,
+          "elapsedMs": 23.948
+        },
+        {
+          "status": 201,
+          "elapsedMs": 23.971
+        },
+        {
+          "status": 201,
+          "elapsedMs": 25.102
+        },
+        {
+          "status": 201,
+          "elapsedMs": 25.159
+        },
+        {
+          "status": 201,
+          "elapsedMs": 25.29
+        },
+        {
+          "status": 201,
+          "elapsedMs": 29.034
+        },
+        {
+          "status": 201,
+          "elapsedMs": 29.599
+        },
+        {
+          "status": 201,
+          "elapsedMs": 27.731
+        },
+        {
+          "status": 201,
+          "elapsedMs": 27.62
+        },
+        {
+          "status": 201,
+          "elapsedMs": 27.624
+        },
+        {
+          "status": 201,
+          "elapsedMs": 27.676
+        },
+        {
+          "status": 201,
+          "elapsedMs": 27.296
+        }
+      ]
+    },
+    {
+      "name": "GET /api/appointments",
+      "concurrentUsers": 10,
+      "requests": 20,
+      "rps": 1079.686,
+      "averageMs": 7.671,
+      "p90Ms": 10.871,
+      "p95Ms": 11.012,
+      "maxMs": 11.175,
+      "errorCount": 0,
+      "errorPercent": 0,
+      "statusCodes": {
+        "200": 20
+      },
+      "measurements": [
+        {
+          "status": 200,
+          "elapsedMs": 9.849
+        },
+        {
+          "status": 200,
+          "elapsedMs": 9.979
+        },
+        {
+          "status": 200,
+          "elapsedMs": 10.138
+        },
+        {
+          "status": 200,
+          "elapsedMs": 10.305
+        },
+        {
+          "status": 200,
+          "elapsedMs": 10.494
+        },
+        {
+          "status": 200,
+          "elapsedMs": 10.765
+        },
+        {
+          "status": 200,
+          "elapsedMs": 10.819
+        },
+        {
+          "status": 200,
+          "elapsedMs": 10.871
+        },
+        {
+          "status": 200,
+          "elapsedMs": 11.012
+        },
+        {
+          "status": 200,
+          "elapsedMs": 11.175
+        },
+        {
+          "status": 200,
+          "elapsedMs": 4.263
+        },
+        {
+          "status": 200,
+          "elapsedMs": 4.242
+        },
+        {
+          "status": 200,
+          "elapsedMs": 4.277
+        },
+        {
+          "status": 200,
+          "elapsedMs": 4.288
+        },
+        {
+          "status": 200,
+          "elapsedMs": 4.367
+        },
+        {
+          "status": 200,
+          "elapsedMs": 4.429
+        },
+        {
+          "status": 200,
+          "elapsedMs": 4.446
+        },
+        {
+          "status": 200,
+          "elapsedMs": 5.844
+        },
+        {
+          "status": 200,
+          "elapsedMs": 5.9
+        },
+        {
+          "status": 200,
+          "elapsedMs": 5.966
+        }
+      ]
+    },
+    {
+      "name": "POST /api/appointments",
+      "concurrentUsers": 10,
+      "requests": 20,
+      "rps": 524.136,
+      "averageMs": 17.78,
+      "p90Ms": 23.282,
+      "p95Ms": 23.399,
+      "maxMs": 23.524,
+      "errorCount": 0,
+      "errorPercent": 0,
+      "statusCodes": {
+        "201": 20
+      },
+      "measurements": [
+        {
+          "status": 201,
+          "elapsedMs": 22.722
+        },
+        {
+          "status": 201,
+          "elapsedMs": 22.721
+        },
+        {
+          "status": 201,
+          "elapsedMs": 22.816
+        },
+        {
+          "status": 201,
+          "elapsedMs": 22.998
+        },
+        {
+          "status": 201,
+          "elapsedMs": 23.083
+        },
+        {
+          "status": 201,
+          "elapsedMs": 23.165
+        },
+        {
+          "status": 201,
+          "elapsedMs": 23.222
+        },
+        {
+          "status": 201,
+          "elapsedMs": 23.282
+        },
+        {
+          "status": 201,
+          "elapsedMs": 23.399
+        },
+        {
+          "status": 201,
+          "elapsedMs": 23.524
+        },
+        {
+          "status": 201,
+          "elapsedMs": 12.476
+        },
+        {
+          "status": 201,
+          "elapsedMs": 12.376
+        },
+        {
+          "status": 201,
+          "elapsedMs": 12.385
+        },
+        {
+          "status": 201,
+          "elapsedMs": 12.385
+        },
+        {
+          "status": 201,
+          "elapsedMs": 12.359
+        },
+        {
+          "status": 201,
+          "elapsedMs": 12.608
+        },
+        {
+          "status": 201,
+          "elapsedMs": 12.591
+        },
+        {
+          "status": 201,
+          "elapsedMs": 12.571
+        },
+        {
+          "status": 201,
+          "elapsedMs": 12.565
+        },
+        {
+          "status": 201,
+          "elapsedMs": 12.346
+        }
+      ]
+    }
+  ]
+}

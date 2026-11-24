@@ -12,10 +12,12 @@ import '../services/user_data_service.dart';
 import '../widgets/medical_summary_card.dart';
 import '../widgets/next_appointment_widget.dart';
 import '../widgets/quick_actions_grid.dart';
+import '../widgets/user_avatar.dart';
 import 'appointments_screen.dart';
 import 'edit_profile_screen.dart';
 import 'emergency_contacts_screen.dart';
 import 'medical_records_screen.dart';
+import 'profile_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -113,16 +115,43 @@ class _DashboardScreenState extends State<DashboardScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // SALUDO
-              Text(
-                "Hola, ${user?.fullName ?? 'Usuario'} 👋",
-                style:
-                    const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 5),
-              const Text(
-                "Tu información médica en un solo lugar",
-                style: TextStyle(color: Colors.grey, fontSize: 14),
+              // SALUDO Y FOTO DE PERFIL
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Hola, ${user?.fullName ?? 'Usuario'} 👋",
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        const Text(
+                          "Tu información médica en un solo lugar",
+                          style: TextStyle(color: Colors.grey, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  UserAvatar(
+                    profileImage: user?.profileImage,
+                    fullName: user?.fullName ?? 'Usuario',
+                    radius: 28,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ProfileScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
 
