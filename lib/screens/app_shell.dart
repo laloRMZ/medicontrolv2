@@ -117,39 +117,6 @@ class _AppShellState extends State<AppShell> {
             _currentIndex < screens.length ? _currentIndex : 0;
 
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('MediControl'),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: Center(
-                  child: Tooltip(
-                    message: '${user.fullName} (${user.role.name})',
-                    child: Text(
-                      user.fullName,
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  ),
-                ),
-              ),
-              PopupMenuButton(
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    child: const Text('Cerrar sesión'),
-                    onTap: () {
-                      authProvider.logout();
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                        (route) => false,
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
           body: IndexedStack(index: selectedIndex, children: screens),
           bottomNavigationBar: NavigationBar(
             selectedIndex: selectedIndex,
